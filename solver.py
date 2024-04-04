@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import deque
@@ -195,9 +196,12 @@ def lancement(grille):
 
     return niv0 + variables
     
-def niveau_0(grille_copie, d, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
+def niveau_0(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
     """"return peu être quelquechose, ce quelquechose c'est la grille remplie au mieux"""
-                
+    grille_copie = deepcopy(grille)
+    d= deepcopy(dico)
+    dico_est_trouve=copy.deepcopy(dico_est_trouve_0)    
+    cages_valeurs=copy.deepcopy(cages_valeurs_0)
     To_treat = [(i, j) for i in range(nb_ligne) for j in range(nb_colonne)] 
    
     while len(To_treat):
@@ -262,33 +266,8 @@ def cases_restantes(dico_est_trouve):
    return sum(list(dico_est_trouve.values()))
 
 
-#print(lancement(grille))
-#affichage(lancement(grille))
-#print(os.listdir("instances"))
-nb_false = 0
-nb_true = 0
-cpt = 0
-#for file in os.listdir("exemples_grilles/instances") : # "exemples_grilles/instances"
-#    
-#    grille = transformation("exemples_grilles/instances/" + file)
-#    if (lancement(grille)[0] == -1).any() :
-#        nb_true += 1
-#        print(file)
-#        input()
-#    else :
-#        nb_false += 1
-#    cpt += 1
-#    if cpt % 1000 == 0 :
-#        print("nombre de grilles testees" + str(cpt))
-#        print("nombre de grilles non résolues :" + str(nb_false))
-#        print("nombre de grilles résolues :" + str(nb_true))
-#        print()
 
-print("nombre de grilles testees" + str(cpt))
-print("nombre de grilles non résolues :" + str(nb_false))
-print("nombre de grilles résolues :" + str(nb_true))
-print()
-input()
+
 # v10_b1_15.txt : non résolue avec le niveau 0
 
 
@@ -308,22 +287,12 @@ def niveau_1(coord, grille, d, dico_est_trouve, cages_valeurs, dico_taille, Tail
             cages_valeurs_copie=copy.deepcopy(cages_valeurs)
             cages_valeurs_copie[grille_copie[i][j][1]].append(e+1)
             if valeure_trouvee(d_copie,coord,grille_copie,dico_est_trouve_copie, cages_valeurs_copie):
-                print("grille")
-                affichage(grille)
-                print("grille copie")
-                affichage(grille_copie)
                 dico=niveau_0(grille_copie, d_copie, dico_est_trouve_copie, cages_valeurs_copie, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-                print("dico0")
-                affichage(dico[0])
-                print(dico[4])
-                input()
                 if dico[4]:
                     possible.append(dico[1])
     return concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne)
 
 def concurrent_de_union_de_dicos_(possible:list, nb_ligne:int, nb_colonne:int) :
-    print(possible)
-    input()
     n = len(possible)
     dico = {}
     for i in range(nb_ligne):
@@ -353,8 +322,8 @@ def union_de_dicos(possible:list, nb_ligne:int, nb_colonnes:int)->dict:
     
     
             
-def main() :
-    path = "exemples_grilles/instances/v10_b100_1.txt"
+def main(path) :
+    #path = "exemples_grilles/instances/v10_b100_1.txt"
     grille = np.array(transformation(path))
     premier_niveau_0 = lancement(grille)
     #grille_niveau_0, dico,dico_est_trouve,cages_valeurs = niveau_0(grille)
@@ -364,24 +333,48 @@ def main() :
         return 1
     liste_cases_vides = get_missing_values(grille)
     if len(liste_cases_vides) == 0 :
-        print("grille remplie au niveau 0")
-        return 0
+        return grille
     else:
-        while len(liste_cases_vides) > 0:
-            for k in range(len(liste_cases_vides)) :
-                i,j = liste_cases_vides[k]#liste_cases_vides = [[i1, i2 ...], [j1, j2, ...]]
-                d_niveau_1 = niveau_1((i,j), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-                new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-                if(len(get_missing_values(new_grille)) == 0) :
-                    print("ok niveau 1")
-                    return 0
-            break
-    affichage(grille)
-    return
+        k = 0
+        while k < len(liste_cases_vides):
+            i,j = liste_cases_vides[k]#liste_cases_vides = [[i1, i2 ...], [j1, j2, ...]]
+            d_niveau_1 = niveau_1((i,j), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            #si on n'apprend pas des nouvelles choses
+            if dico == new_dico :
+                k += 1
+            else:
+                grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+                liste_cases_vides = get_missing_values(grille)
+                k = 0
+    return grille
     
-main()
 #def niveau_0(grille_copie, d, dico_taille, Taille, dico_voisins, cages_positions, cages_valeurs, dico_est_trouve, nb_ligne, nb_colonne):
 
+#print(lancement(grille))
+#affichage(lancement(grille))
+#print(os.listdir("instances"))
+nb_false = 0
+nb_true = 0
+cpt = 0
+for file in os.listdir("exemples_grilles/instances") : # "exemples_grilles/instances"
+    
+    grille = transformation("exemples_grilles/instances/" + file)
+    grille = main("exemples_grilles/instances/" + file)
+    if (grille == -1).any() :
+        nb_false += 1
+    else :
+        nb_true += 1
+    cpt += 1
+    if cpt % 50 == 0 :
+        print("nombre de grilles testees" + str(cpt))
+        print("nombre de grilles non résolues :" + str(nb_false))
+        print("nombre de grilles résolues :" + str(nb_true))
+        print()
 
+print("nombre de grilles testees" + str(cpt))
+print("nombre de grilles non résolues :" + str(nb_false))
+print("nombre de grilles résolues :" + str(nb_true))
+print()
     
     
