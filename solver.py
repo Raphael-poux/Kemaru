@@ -135,7 +135,7 @@ def solved(grille)->bool:
             if grille[i][j][0]<0:return False
     return True
 
-def get_missing_values(grille):
+def get_missing_values(grille, cages_valeurs, dico_taille ):
     """return the coordinates of cases with no value"""
     nb_ligne = len(grille)
     nb_colonne = len(grille[0])
@@ -143,7 +143,11 @@ def get_missing_values(grille):
     for i in range(nb_ligne):
         for j in range(nb_colonne):
             if grille[i][j][0]<0:List_coords.append((i,j))
-    return List_coords
+
+    liste_a_trier = [dico_taille[coord] - len(cages_valeurs[grille[i][j][1]]) for coord in List_coords]
+    indices_tries = sorted(range(len(liste_a_trier)), key=lambda i: liste_a_trier[i])
+
+    return [List_coords[i] for i in indices_tries]
 
 def valeure_trouvee(d,coord,grille,dico_est_trouve, cages_valeurs):
     """renvoie True s'il ne reste qu'une valeur possible pour la case de coordonnées coord"""
@@ -198,8 +202,9 @@ def lancement(grille):
     
 def niveau_0(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
     """"return peu être quelquechose, ce quelquechose c'est la grille remplie au mieux"""
+    cout = 0
     grille_copie = deepcopy(grille)
-    d= deepcopy(dico)
+    d = deepcopy(dico)
     dico_est_trouve=copy.deepcopy(dico_est_trouve_0)    
     cages_valeurs=copy.deepcopy(cages_valeurs_0)
     To_treat = [(i, j) for i in range(nb_ligne) for j in range(nb_colonne)] 
@@ -218,6 +223,8 @@ def niveau_0(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_taille, Tail
                 value, cage = grille_copie[i][j]
                 for v in dico_voisins[(i, j)] :
                     if value <= dico_taille[v] :
+                        if d[v][value-1]:
+                            cout+=1
                         d[v][value - 1] = False
                         #pour le test :
                         if not dico_est_trouve[v]:
@@ -225,6 +232,8 @@ def niveau_0(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_taille, Tail
                             To_treat.append((grille_copie[v[0]][v[1]][1],))
                 for v in cages_positions[grille_copie[i][j][1]]:
                     if v != element :
+                        if d[v][value-1]:
+                            cout+=1
                         d[v][value - 1] = False
                         if not dico_est_trouve[v]:
                             To_treat.append(v)
@@ -239,9 +248,14 @@ def niveau_0(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_taille, Tail
             for i in range(1, nb_elements_cage + 1) :
                 cases_possibles = []
                 for case in cases_dans_la_cage :
+                    if i - 1 >= len(d[case]):
+                        print("debug niveau 0" + str(i-1))
+                        print(len(d[case]))
                     if (d[case][i - 1] == True) :
                         cases_possibles.append(case)
+                cout+=len(cases_dans_la_cage) # ici ?
                 if len(cases_possibles) == 1 :
+                    # cout+=len(cases_dans_la_cage) # ou là ?
                     seule_case_possible = cases_possibles[0]
                     d[seule_case_possible ] = [False]*len(d[seule_case_possible])
                     d[seule_case_possible ][i - 1] = True
@@ -253,7 +267,7 @@ def niveau_0(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_taille, Tail
     if any(sum(v) == 0 for _,v in d.items()):
         return grille_copie, d, dico_est_trouve, cages_valeurs, False # à changer ?
                 
-    return grille_copie, d, dico_est_trouve, cages_valeurs, True #rajouter d pour plus tard
+    return grille_copie, d, dico_est_trouve, cages_valeurs, True, cout #rajouter d pour plus tard
 
 #def niveau_n(n,grille:list,d:dict):
 #    """level n processing including deep research black box PST research and Von Marken  stochastic process"""                             
@@ -276,6 +290,7 @@ def niveau_1(coord, grille, d, dico_est_trouve, cages_valeurs, dico_taille, Tail
     i,j=coord
     L=d[coord]
     possible=[]
+    cout=sum(L)**2
     for e in range(len(L)):
         if L[e]:
             d_copie=copy.copy(d)
@@ -286,11 +301,55 @@ def niveau_1(coord, grille, d, dico_est_trouve, cages_valeurs, dico_taille, Tail
             dico_est_trouve_copie[(i,j)]=True
             cages_valeurs_copie=copy.deepcopy(cages_valeurs)
             cages_valeurs_copie[grille_copie[i][j][1]].append(e+1)
-            if valeure_trouvee(d_copie,coord,grille_copie,dico_est_trouve_copie, cages_valeurs_copie):
-                dico=niveau_0(grille_copie, d_copie, dico_est_trouve_copie, cages_valeurs_copie, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-                if dico[4]:
-                    possible.append(dico[1])
-    return concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne)
+            retours=niveau_0(grille_copie, d_copie, dico_est_trouve_copie, cages_valeurs_copie, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            if retours[4]:
+                cout += retours[-1]
+                possible.append(retours[1])
+
+    return concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne), cout
+
+def niveau_2(coord1,coord2, grille, d, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne) :
+    (i,j),(k,l)=coord1,coord2
+    L1=d[coord1]
+    L2 = d[coord2]
+    cout = (sum(L1) + sum(L2))**2
+    possible=[]
+    for e1 in range(len(L1)):
+        for e2 in range(len(L2)):
+            if L1[e1] and L2[e2]:
+                d_copie=copy.deepcopy(d)
+                d_copie[(i,j)]=[False]*e1 + [True]+[False]*(len(L1)-1-e1)
+                d_copie[(k,l)] = [False]*e2 + [True] + [False]*(len(L2)-1-e2)
+                grille_copie= copy.deepcopy(grille)
+                grille_copie[i][j][0]=e1+1
+                grille_copie[k][l][0]=e2+1
+                dico_est_trouve_copie=copy.deepcopy(dico_est_trouve)    #Complexité linéaire en n^2
+                dico_est_trouve_copie[(i,j)]=True
+                dico_est_trouve_copie[(k,l)]=True
+                cages_valeurs_copie=copy.deepcopy(cages_valeurs)
+                cages_valeurs_copie[grille_copie[i][j][1]].append(e1+1)
+                cages_valeurs_copie[grille_copie[k][l][1]].append(e2+1)
+                retours=niveau_0(grille_copie, d_copie, dico_est_trouve_copie, cages_valeurs_copie, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                if retours[4]:
+                    cout += retours[-1]
+                    possible.append(retours[1])
+    return concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne), cout
+
+def get_pairs(ens:list)->list:
+    """copyright  @GabrielPatry"""
+    n = len(ens)
+    list_pairs = []
+    for i in range(n-1):
+        for j in range(i+1,n):
+            list_pairs.append((ens[i],ens[j]))
+    #maintenant on trie
+    for i in range(len(list_pairs)):
+        for j in range(len(list_pairs)):
+            (i1,j1),(k,l) = list_pairs[i]
+            (m,n),(o,p)  =list_pairs[j]
+            if (k-i1)**2+(l-j1)**2 < (m-o)**2+(p-n)**2 and j<i :
+                list_pairs[i],list_pairs[j] = list_pairs[j],list_pairs[i]
+    return list_pairs
 
 def concurrent_de_union_de_dicos_(possible:list, nb_ligne:int, nb_colonne:int) :
     n = len(possible)
@@ -326,27 +385,47 @@ def main(path) :
     #path = "exemples_grilles/instances/v10_b100_1.txt"
     grille = np.array(transformation(path))
     premier_niveau_0 = lancement(grille)
+    dico2 = {0:1}
     #grille_niveau_0, dico,dico_est_trouve,cages_valeurs = niveau_0(grille)
-    grille, dico, dico_est_trouve, cages_valeurs, grille_valide, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne = premier_niveau_0
+    grille, dico, dico_est_trouve, cages_valeurs, grille_valide, cout, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne = premier_niveau_0
     if not grille_valide :
         print("grille non valide")
         return 1
-    liste_cases_vides = get_missing_values(grille)
+    liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
     if len(liste_cases_vides) == 0 :
         return grille
     else:
-        k = 0
-        while k < len(liste_cases_vides):
-            i,j = liste_cases_vides[k]#liste_cases_vides = [[i1, i2 ...], [j1, j2, ...]]
-            d_niveau_1 = niveau_1((i,j), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-            #si on n'apprend pas des nouvelles choses
-            if dico == new_dico :
-                k += 1
-            else:
+        k2 = 0
+        list_pairs = get_pairs(liste_cases_vides)
+        while k2 < len(list_pairs) :
+            k1 = 0
+            while k1 < len(liste_cases_vides):
+                i,j = liste_cases_vides[k1]
+                d_niveau_1 = niveau_1((i,j), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                #si on n'apprend pas des nouvelles choses
+                if dico == new_dico :
+                    k1 += 1
+                else:
+                    grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+                    liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
+                    k1 = 0
+            if (grille == -1).any() :
+                if dico2 != dico:
+                    dico2 = dico
+                    liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
+                    list_pairs = get_pairs(liste_cases_vides)
+                    k2 = 0
+                else:
+                    k2 = k2+1
+                (i,j), (k,l) = list_pairs[k2] 
+                d_niveau_2 = niveau_2((i,j), (k,l), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide = niveau_0(grille, d_niveau_2, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                #si on n'apprend pas des nouvelles choses
                 grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
-                liste_cases_vides = get_missing_values(grille)
-                k = 0
+                liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
+            else : 
+                return grille
     return grille
     
 #def niveau_0(grille_copie, d, dico_taille, Taille, dico_voisins, cages_positions, cages_valeurs, dico_est_trouve, nb_ligne, nb_colonne):
@@ -357,24 +436,47 @@ def main(path) :
 nb_false = 0
 nb_true = 0
 cpt = 0
-for file in os.listdir("exemples_grilles/instances") : # "exemples_grilles/instances"
-    
-    grille = transformation("exemples_grilles/instances/" + file)
-    grille = main("exemples_grilles/instances/" + file)
-    if (grille == -1).any() :
-        nb_false += 1
-    else :
-        nb_true += 1
-    cpt += 1
-    if cpt % 50 == 0 :
-        print("nombre de grilles testees" + str(cpt))
-        print("nombre de grilles non résolues :" + str(nb_false))
-        print("nombre de grilles résolues :" + str(nb_true))
-        print()
+file = "exemples_grilles/instances/v10_b100_11.txt" 
+#grille = main(file)
+#print("--------------niveau 1 sur la grille------------")
+#affichage(grille)
+#input()
 
-print("nombre de grilles testees" + str(cpt))
-print("nombre de grilles non résolues :" + str(nb_false))
-print("nombre de grilles résolues :" + str(nb_true))
-print()
+#for file in os.listdir("exemples_grilles/instances") : # "exemples_grilles/instances"
+#    
+#    grille = transformation("exemples_grilles/instances/" + file)
+#    grille = main("exemples_grilles/instances/" + file)
+#    
+#    if (grille == -1).any() :
+#        nb_false += 1
+#        print(file)
+#        affichage(grille)
+#        input()
+#    else :
+#        nb_true += 1
+#    cpt += 1
+#    if cpt % 10 == 0 :
+#        print("nombre de grilles testees" + str(cpt))
+#        print("nombre de grilles non résolues :" + str(nb_false))
+#        print("nombre de grilles résolues :" + str(nb_true))
+#        print()
+#
+#print("nombre de grilles testees" + str(cpt))
+#print("nombre de grilles non résolues :" + str(nb_false))
+#print("nombre de grilles résolues :" + str(nb_true))
+#print()
     
+#v10_b33_11.txt non résolue avec le niveau 1
+
+def test_niveaux_et_couts(path):
+    grille = np.array(transformation(path))
+    premier_niveau_0 = lancement(grille)
+    grille, dico, dico_est_trouve, cages_valeurs, grille_valide, cout, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne = premier_niveau_0
+    affichage(grille)
+    print(cout)
+    d_niveau_1, cout_niv1 = niveau_1((0,0), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+    affichage(grille)
+    print(cout_niv1)
     
+
+test_niveaux_et_couts("exemples_grilles/instances/v10_b100_11.txt")
