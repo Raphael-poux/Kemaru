@@ -51,7 +51,7 @@ def transformation(nom):
     return np.array(K)
             
         
-print(transformation("exemples_grilles/instances/v10_b1_3.txt"))
+#print(transformation("exemples_grilles/instances/v10_b1_3.txt"))
 
 #grille = np.array([[[-1, 1], [3, 1], [4, 1]], [[-1, 2], [1, 1], [-1, 1]], [[2, 2], [-1, 2], [-1, 2]]])
 #grille = np.array(transformation("exemples_grilles/instances/v10_b1_9.txt"))
@@ -384,16 +384,18 @@ def union_de_dicos(possible:list, nb_ligne:int, nb_colonnes:int)->dict:
 def main(path) :
     #path = "exemples_grilles/instances/v10_b100_1.txt"
     grille = np.array(transformation(path))
+    steps = [deepcopy(grille)]
     premier_niveau_0 = lancement(grille)
     dico2 = {0:1}
     #grille_niveau_0, dico,dico_est_trouve,cages_valeurs = niveau_0(grille)
     grille, dico, dico_est_trouve, cages_valeurs, grille_valide, cout, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne = premier_niveau_0
+    steps.append(deepcopy(grille))
     if not grille_valide :
         print("grille non valide")
         return 1
     liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
     if len(liste_cases_vides) == 0 :
-        return grille
+        return grille,steps
     else:
         k2 = 0
         list_pairs = get_pairs(liste_cases_vides)
@@ -407,6 +409,7 @@ def main(path) :
                 if dico == new_dico :
                     k1 += 1
                 else:
+                    steps += deepcopy(new_grille)
                     grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
                     liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
                     k1 = 0
@@ -423,10 +426,11 @@ def main(path) :
                 new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide = niveau_0(grille, d_niveau_2, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
                 #si on n'apprend pas des nouvelles choses
                 grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+                steps +=deepcopy(new_grille)
                 liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
             else : 
-                return grille
-    return grille
+                return grille,steps
+    return grille,steps
     
 #def niveau_0(grille_copie, d, dico_taille, Taille, dico_voisins, cages_positions, cages_valeurs, dico_est_trouve, nb_ligne, nb_colonne):
 
@@ -479,4 +483,4 @@ def test_niveaux_et_couts(path):
     print(cout_niv1)
     
 
-test_niveaux_et_couts("exemples_grilles/instances/v10_b100_11.txt")
+#test_niveaux_et_couts("exemples_grilles/instances/v10_b100_11.txt")

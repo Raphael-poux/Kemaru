@@ -65,6 +65,7 @@ def grid_filled(grid, game_state):
             
 def grid_and_groups_creation(file):
     matrix, number_of_groups = file
+    print(file)
     h = len(matrix)
     w = len(matrix[0])
     cell_width = grid_width/w
