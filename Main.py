@@ -21,6 +21,9 @@ import Interface
 import Grid
 import Game
 import solver
+
+
+
 pygame.display.set_caption("Kemaru")
 #screen_info = pygame.display.Info()
 #width = screen_info.current_w
@@ -39,7 +42,7 @@ Buttons = Interface.initialising()
 game_state = State_machine.statemachine('menu')
 cell_last_clicked_on = Grid.cell_last_clicked_on()
 steps = None
-k = 0
+cpt_steps = 0
 while running:
     clock.tick(10)
     x_mouse, y_mouse = pygame.mouse.get_pos()
@@ -51,27 +54,24 @@ while running:
             game_state.reset_counter()
             for button in Buttons:
                 game_state.button_is_clicked_on(event, button)
-                if game_state.transition_state:
-                    if game_state.transition == ('difficulty_level', 'game'):
-                        file = Game.read_random_file(filepath = "instances/v10_b1_15.txt")
-                        filepath = file[0] #I only keep the path
-                        grid, groups, cell_width, cell_height = Grid.grid_and_groups_creation(file[1:]) #we can replace random by the file we want(not obligatory)
-                        steps = solver.main(filepath)
-                        print(0,steps,len(steps))
+            if game_state.transition_state:
+                if game_state.transition == ('difficulty_level', 'game'):
+                    file = Game.read_random_file(filepath = "instances/v10_b1_15.txt")
+                    filepath = file[0] #I only keep the path
+                    grid, groups, cell_width, cell_height = Grid.grid_and_groups_creation(file[1:]) #we can replace random by the file we want(not obligatory)
+                    grille_useless, steps = solver.lancement_interface(filepath)
+                    cpt_steps = 0
+                    print(len(steps))
             if game_state.current_state == 'game' and not game_state.transition_state :
                 for row in grid:
                     for cell in row:
                         cell.cell_is_clicked_on(event, cell_last_clicked_on, grid)
-        if event.type == pygame.KEYDOWN and not steps == None: #and game_state.current_state == 'game' and not steps == None and k<=len(steps):
-            print(steps[k]),Game.convert(steps[k])
-            grid, groups, cells_width,cell_height = Grid.grid_and_groups_creation(Game.convert(steps[k]))
-            
-            Grid.grid_display(grid,screen)
-            Grid.groups_display(groups, screen, cell_width, cell_height)
+        if event.type == pygame.KEYDOWN and game_state.current_state == 'game':
+            cell_last_clicked_on.new_number(grid, event)
+            if event.key == pygame.K_SPACE:
+                Grid.mise_a_jour_cellules(grid, steps[cpt_steps])
+                cpt_steps += 1
 
-            #cell_last_clicked_on.new_number(grid, event) #changes must be setted here
-            k += 1
-            
         
     for button in Buttons:
         button.button_display(game_state.current_state, screen)

@@ -332,7 +332,7 @@ def niveau_0_interface(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_ta
                         if d[v][value-1]:
                             d[v][value - 1] = False
                             cout+=1
-                            steps.append(((i,j),deepcopy(d)))
+                            steps.append(([(i,j)],deepcopy(d)))
                         d[v][value - 1] = False
                         
                         #pour le test :
@@ -344,7 +344,7 @@ def niveau_0_interface(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_ta
                         if d[v][value-1]:
                             cout+=1
                             d[v][value - 1] = False
-                            steps.append(((i,j),deepcopy(d)))
+                            steps.append(([(i,j)],deepcopy(d)))
                         d[v][value - 1] = False
                         if not dico_est_trouve[v]:
                             To_treat.append(v)
@@ -375,7 +375,7 @@ def niveau_0_interface(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_ta
                         dico_est_trouve[seule_case_possible] = True
                         To_treat.append(seule_case_possible)
 
-    return steps
+    return grille_copie, steps
 
     if any(sum(v) == 0 for _,v in d.items()):
         return grille_copie, d, dico_est_trouve, cages_valeurs, False # à changer ?

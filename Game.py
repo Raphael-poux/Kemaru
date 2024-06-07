@@ -67,6 +67,3 @@ def convert(grid):
     return (Newgrid,Ncells)
 
 
-def convert_dico_to_grid(dico):
-    
-

@@ -14,6 +14,8 @@
 
 # +
 import pygame
+from copy import deepcopy
+police = pygame.font.Font(None, int(30))
 
 width = 900
 height = 720
@@ -41,9 +43,10 @@ class cell:
         self.group = value_and_group[1]
         self.clicked_on = False
 
+
     def cell_display(self, screen):
         if self.clicked_on:
-            pygame.draw.rect(screen, cell_color, self.surface)
+            pygame.draw.rect(screen, self.color, self.surface)
         pygame.draw.rect(screen, self.color, self.surface, 1)
         if self.value:
             screen.blit(self.text, self.rect_text)
@@ -65,7 +68,6 @@ def grid_filled(grid, game_state):
             
 def grid_and_groups_creation(file):
     matrix, number_of_groups = file
-    print(file)
     h = len(matrix)
     w = len(matrix[0])
     cell_width = grid_width/w
@@ -76,6 +78,7 @@ def grid_and_groups_creation(file):
             groups[matrix[j][i][1]].append((j, i))
     grid = [[cell(x, y, i, j, cell_width, cell_height, matrix[i][j]) for j in range(w)] for i in range(h)]
     return grid, groups, cell_width, cell_height
+
 
 def grid_display(grid, screen):
     for row in grid:
@@ -120,26 +123,59 @@ class cell_last_clicked_on:
 
         
     def new_number(self, grid, event):
+        touche = False
         if event.key == pygame.K_1 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 1
+            touche = True
         if event.key == pygame.K_2 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 2
+            touche = True
         if event.key == pygame.K_3 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 3
+            touche = True
         if event.key == pygame.K_4 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 4
+            touche = True
         if event.key == pygame.K_5 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 5
+            touche = True
         if event.key == pygame.K_6 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 6
+            touche = True
         if event.key == pygame.K_7 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 7
+            touche = True
         if event.key == pygame.K_8 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 8
+            touche = True
         if event.key == pygame.K_9 and not grid[self.current_pos[0]][self.current_pos[1]].value:
             grid[self.current_pos[0]][self.current_pos[1]].value = 9
-        police = pygame.font.Font(None, int(grid[self.current_pos[0]][self.current_pos[1]].height/1.2))
-        grid[self.current_pos[0]][self.current_pos[1]].text = police.render(str(grid[self.current_pos[0]][self.current_pos[1]].value), True, (0, 0, 0))
-        grid[self.current_pos[0]][self.current_pos[1]].rect_text = grid[self.current_pos[0]][self.current_pos[1]].text.get_rect(center=grid[self.current_pos[0]][self.current_pos[1]].surface.center)
+            touche = True
+        if touche:
+            police = pygame.font.Font(None, int(grid[self.current_pos[0]][self.current_pos[1]].height/1.2))
+            grid[self.current_pos[0]][self.current_pos[1]].text = police.render(str(grid[self.current_pos[0]][self.current_pos[1]].value), True, (0, 0, 0))
+            grid[self.current_pos[0]][self.current_pos[1]].rect_text = grid[self.current_pos[0]][self.current_pos[1]].text.get_rect(center=grid[self.current_pos[0]][self.current_pos[1]].surface.center)
             
         
+def mise_a_jour_cellules(grid, steps):
+    dico = steps[1]
+    cellules = steps[0]
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            grid[i][j].color = cell_color
+    print(cellules)
+    if not cellules == None:
+        for position in cellules:
+            grid[position[0]][position[1]].color = "red"
+
+    def positions_true(bool_list):
+        positions = [str(index  + 1) for index, value in enumerate(bool_list) if value]
+        return ','.join(positions)
+    
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            if not grid[i][j].value > 0:
+                grid[i][j].value = -1
+                grid[i][j].text = police.render(str(positions_true(dico[(i, j)])), True, (0, 0, 0))
+
+   
