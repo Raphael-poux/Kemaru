@@ -53,10 +53,11 @@ while running:
                 game_state.button_is_clicked_on(event, button)
                 if game_state.transition_state:
                     if game_state.transition == ('difficulty_level', 'game'):
-                        file = Game.read_random_file()
+                        file = Game.read_random_file(filepath = "instances/v10_b1_15.txt")
                         filepath = file[0] #I only keep the path
                         grid, groups, cell_width, cell_height = Grid.grid_and_groups_creation(file[1:]) #we can replace random by the file we want(not obligatory)
                         steps = solver.main(filepath)
+                        print(0,steps,len(steps))
             if game_state.current_state == 'game' and not game_state.transition_state :
                 for row in grid:
                     for cell in row:

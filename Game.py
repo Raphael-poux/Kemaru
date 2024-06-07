@@ -28,9 +28,12 @@ for filename in os.listdir(instances):
         files.append(full_path)
 
 # +
-def read_random_file():
+def read_random_file(filepath = None):
     # Choose a random file from the list
-    random_file = random.choice(files)
+    if not filepath == None:
+        random_file = filepath
+    else:    
+        random_file = random.choice(files)
     grid = {}
     number_of_groups = 0
 
@@ -62,4 +65,8 @@ def convert(grid):
                 Newgrid[i][j] = (0,grid[i,j,1])
             else:Newgrid[i][j] = (grid[i,j,0],grid[i,j,1]-1)
     return (Newgrid,Ncells)
+
+
+def convert_dico_to_grid(dico):
+    
 
