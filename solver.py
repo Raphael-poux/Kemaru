@@ -290,7 +290,7 @@ def niveau_1(coord, grille, d, dico_est_trouve, cages_valeurs, dico_taille, Tail
     i,j=coord
     L=d[coord]
     possible=[]
-    cout=sum(L)**2
+    cout=sum(L)**5
     for e in range(len(L)):
         if L[e]:
             d_copie=copy.copy(d)
@@ -386,6 +386,7 @@ def main(path) :
     grille = np.array(transformation(path))
     premier_niveau_0 = lancement(grille)
     dico2 = {0:1}
+    niveau_max_utilise = 0
     #grille_niveau_0, dico,dico_est_trouve,cages_valeurs = niveau_0(grille)
     grille, dico, dico_est_trouve, cages_valeurs, grille_valide, cout, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne = premier_niveau_0
     if not grille_valide :
@@ -393,7 +394,7 @@ def main(path) :
         return 1
     liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
     if len(liste_cases_vides) == 0 :
-        return grille
+        return grille, niveau_max_utilise
     else:
         k2 = 0
         list_pairs = get_pairs(liste_cases_vides)
@@ -401,7 +402,8 @@ def main(path) :
             k1 = 0
             while k1 < len(liste_cases_vides):
                 i,j = liste_cases_vides[k1]
-                d_niveau_1 = niveau_1((i,j), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                niveau_max_utilise = max((niveau_max_utilise, 1))
+                d_niveau_1, _ = niveau_1((i,j), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
                 new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
                 #si on n'apprend pas des nouvelles choses
                 if dico == new_dico :
@@ -419,13 +421,14 @@ def main(path) :
                 else:
                     k2 = k2+1
                 (i,j), (k,l) = list_pairs[k2] 
-                d_niveau_2 = niveau_2((i,j), (k,l), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-                new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide = niveau_0(grille, d_niveau_2, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                niveau_max_utilise = 2
+                d_niveau_2, _ = niveau_2((i,j), (k,l), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, _ = niveau_0(grille, d_niveau_2, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
                 #si on n'apprend pas des nouvelles choses
                 grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
                 liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
             else : 
-                return grille
+                return grille, niveau_max_utilise
     return grille
     
 #def niveau_0(grille_copie, d, dico_taille, Taille, dico_voisins, cages_positions, cages_valeurs, dico_est_trouve, nb_ligne, nb_colonne):
@@ -445,7 +448,7 @@ file = "exemples_grilles/instances/v10_b100_11.txt"
 #for file in os.listdir("exemples_grilles/instances") : # "exemples_grilles/instances"
 #    
 #    grille = transformation("exemples_grilles/instances/" + file)
-#    grille = main("exemples_grilles/instances/" + file)
+#    grille, niveau_max = main("exemples_grilles/instances/" + file)
 #    
 #    if (grille == -1).any() :
 #        nb_false += 1
@@ -454,17 +457,18 @@ file = "exemples_grilles/instances/v10_b100_11.txt"
 #        input()
 #    else :
 #        nb_true += 1
+#        print(file, niveau_max)
 #    cpt += 1
 #    if cpt % 10 == 0 :
 #        print("nombre de grilles testees" + str(cpt))
 #        print("nombre de grilles non résolues :" + str(nb_false))
 #        print("nombre de grilles résolues :" + str(nb_true))
 #        print()
-#
-#print("nombre de grilles testees" + str(cpt))
-#print("nombre de grilles non résolues :" + str(nb_false))
-#print("nombre de grilles résolues :" + str(nb_true))
-#print()
+
+print("nombre de grilles testees" + str(cpt))
+print("nombre de grilles non résolues :" + str(nb_false))
+print("nombre de grilles résolues :" + str(nb_true))
+print()
     
 #v10_b33_11.txt non résolue avec le niveau 1
 
@@ -479,4 +483,295 @@ def test_niveaux_et_couts(path):
     print(cout_niv1)
     
 
-test_niveaux_et_couts("exemples_grilles/instances/v10_b100_11.txt")
+def plus_court_chemin(grille,arbre,cout,cle_actuelle):
+    """ prend une grille en entrée et calcule le plus court chemin de résolution
+    grille : la configuration initiale
+    arbre : dico qui contient l'abre du jeu. Les clefs sont de la forme 
+    0_1-5-3_1-6-4 si le chemin est un niveau 0 puis un niveau 1 sur la case (5,3)...
+    les élements sont des tuples qui contiennent la grille et le cout correspondant
+    cout : le cout qui nous a permi d'obtenir la conf initiale
+    liste_etapes : liste des étapes faites pour arriver à cette configuration """
+    nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+    print(cle_actuelle, nb_cases_vides)
+    if nb_cases_vides == 0 :
+        return grille, arbre, cout, cle_actuelle
+    else : 
+
+        
+        d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(grille)
+        
+        #on traite le cas où deux chemins différents donnent le même résultat
+        #liste_etapes.append((grille_n0,[0]))
+        
+        if not ((len(cle_actuelle)>=3 and cle_actuelle[-3 : ]=="_0_") or cle_actuelle == "0_") :
+            grille_n0, _, _, _, _, cout_n0 =niveau_0(grille,d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            arbre[cle_actuelle+"0_"] = (grille_n0,cout+cout_n0)
+
+    liste_cases_vides = get_missing_values(grille, cages_valeurs_0, dico_taille)
+    for case in liste_cases_vides :
+        i,j=case
+        d_niveau_1, cout_n1 = niveau_1(case, grille, d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+        new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+        #liste_etapes.append((new_grille,[1,case]))
+        arbre[cle_actuelle+"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,cout+new_cout+cout_n1)
+
+   # list_pairs = get_pairs(liste_cases_vides)
+   # for i in range(len(list_pairs)):
+    #    (x,y), (z,t) = list_pairs[i] 
+     #   d_niveau_2, cout_n2 = niveau_2((x,y), (z,t), grille, d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+      #  new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_2, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+       # arbre[cle_actuelle+"2-"+str(x)+"-"+str(y)+"-"+str(z)+"-"+str(t)+"_"]=(new_grille,cout+new_cout+cout_n2)
+
+    min_grille, min_cout, min_cle=min(arbre)
+    del arbre[min_cle]
+    return plus_court_chemin(min_grille,arbre,min_cout,min_cle)
+    
+        
+        
+#test_niveaux_et_couts("exemples_grilles/instances/v10_b100_11.txt")
+
+def données_grille(grille):
+    grille_copie = deepcopy(grille)
+    nb_ligne = len(grille[0])
+    nb_colonne = len(grille)
+    nb_cages = nb_cage(grille)
+
+    dico_est_trouve={}
+    for i in range(nb_ligne):
+        for j in range(nb_colonne):
+            if grille[i][j][0]!=-1:
+                dico_est_trouve[(i,j)] = True 
+            else:
+                dico_est_trouve[(i,j)] = False
+
+    Taille=[]
+    for i in range(1,nb_cages+1):
+        Taille.append(taille_cage(grille,i))
+
+    dico_taille = {(i,j) : Taille[grille[i][j][1]-1] for i in range(nb_ligne) for j in range(nb_colonne)}
+    
+    cages_positions, cages_valeurs = dico_cages(grille, nb_cages)
+    dico_voisins = dico_des_voisins(nb_ligne, nb_colonne)
+    
+    d = { (i, j) : [True]*dico_taille[(i,j)] for i in range(nb_ligne) for j in range(nb_colonne)} 
+    for i in range(nb_ligne):
+        for j in range(nb_colonne):
+            valeur = grille_copie[i][j][0]
+            if valeur != -1 :
+                d[(i, j)] = [False]*len(d[(i, j)])
+                d[(i, j)][valeur - 1] = True
+    return d, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne
+
+def min(d):
+    i=None
+    j=None
+    cle=None
+    for e in d:
+        if i==None or d[e][1]<i:
+            i=d[e][1]
+            j=d[e][0]
+            cle=e
+    return j,i,cle
+            
+def max_info(d):
+    i=None
+    j=None
+    cle=None
+    for e in d:
+        if i==None or d[e][1]>i:
+            i=d[e][1]
+            j=d[e][0]
+            cle=e
+    return j,i,cle
+
+
+
+#v10_b100_1.txt 1
+#v10_b100_10.txt 2
+#v10_b100_11.txt 2
+#v10_b100_12.txt 1
+#v10_b100_13.txt 1
+#v10_b100_14.txt 1
+
+
+#v10_b11_9.txt 1
+#v10_b12_1.txt 1
+#v10_b12_10.txt 1
+#v10_b12_11.txt 1
+#v10_b12_12.txt 1
+#v10_b12_13.txt 1
+#v10_b12_14.txt 1
+
+def plus_court_chemin_non_récursif(grille):
+    cout=0
+    historique=""
+    current_grille=grille
+    current_cout = 0
+    arbre = {}
+    nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+    d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(current_grille)
+    while nb_cases_vides != 0 :
+        
+        #on traite le cas où deux chemins différents donnent le même résultat
+        #liste_etapes.append((grille_n0,[0]))
+        if not ((len(historique)>=3 and historique[-3 : ]=="_0_") or historique == "0_") :
+            grille_n0, d_n0, dico_est_trouve_n0, cages_valeurs_n0, _, cout_n0 =niveau_0(current_grille,d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            arbre[historique+"0_"] = (grille_n0, current_cout + cout_n0, (d_n0, dico_est_trouve_n0, cages_valeurs_n0, dico_taille, Taille, dico_voisins, cages_positions))
+
+        liste_cases_vides = get_missing_values(current_grille, cages_valeurs_0, dico_taille)
+        for case in liste_cases_vides :
+            i,j=case
+            d_niveau_1, cout_n1 = niveau_1(case, current_grille, d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(current_grille, d_niveau_1, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            #liste_etapes.append((new_grille,[1,case]))
+            arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,current_cout+new_cout+cout_n1, (new_dico, new_dico_est_trouve,new_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions))
+        min_grille, min_cout, min_cle=min(arbre)
+        d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
+        current_cout = min_cout
+        current_grille = min_grille
+        historique = min_cle
+        del arbre[min_cle]
+        nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
+        print(min_cle, nb_cases_vides)
+        print(min_cout)
+        print(len(arbre))
+    return arbre
+
+   # list_pairs = get_pairs(liste_cases_vides)
+   # for i in range(len(list_pairs)):
+    #    (x,y), (z,t) = list_pairs[i] 
+     #   d_niveau_2, cout_n2 = niveau_2((x,y), (z,t), grille, d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+      #  new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_2, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+       # arbre[cle_actuelle+"2-"+str(x)+"-"+str(y)+"-"+str(z)+"-"+str(t)+"_"]=(new_grille,cout+new_cout+cout_n2)
+
+
+def plus_court_chemin_non_récursif_maximisation_infomations(grille):
+    """reprend le même algo que dessus mais cette fois, on veut maximiser la quantité d'informations"""
+    cout=0
+    historique=""
+    current_grille=grille
+    current_cout = 0
+    arbre = {}
+    nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+    d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(current_grille)
+    print(d)
+    input()
+    information = (~np.array(sum(d.values(), []))).sum() #faut pas poser trop de questions mais ça marche : 
+                                                         #ça permet de compter le nombre total de False dans d (ie le nombre d'info qu'on a sur la grille)
+    while nb_cases_vides != 0 :
+        
+        #on traite le cas où deux chemins différents donnent le même résultat
+        #liste_etapes.append((grille_n0,[0]))
+        if not ((len(historique)>=3 and historique[-3 : ]=="_0_") or historique == "0_") :
+            grille_n0, d_n0, dico_est_trouve_n0, cages_valeurs_n0, _, cout_n0 =niveau_0(current_grille,d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            new_information = (~np.array(sum(d_n0.values(), []))).sum()
+            arbre[historique+"0_"] = (grille_n0, new_information - information, (d_n0, dico_est_trouve_n0, cages_valeurs_n0, dico_taille, Taille, dico_voisins, cages_positions))
+
+        liste_cases_vides = get_missing_values(current_grille, cages_valeurs_0, dico_taille)
+        for case in liste_cases_vides :
+            i,j=case
+            d_niveau_1, cout_n1 = niveau_1(case, current_grille, d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(current_grille, d_niveau_1, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            #liste_etapes.append((new_grille,[1,case]))
+            new_information = (~np.array(sum(new_dico.values(), []))).sum()
+            arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,new_information - information, (new_dico, new_dico_est_trouve,new_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions))
+        min_grille, max_information, min_cle=max_info(arbre)
+        d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
+        information = (~np.array(sum(d.values(), []))).sum()
+        current_grille = min_grille
+        historique = min_cle
+        del arbre[min_cle]
+        nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
+        print(min_cle, nb_cases_vides)
+        print(information)
+        print(len(arbre))
+    return arbre
+
+path = "exemples_grilles/instances/v10_b100_14.txt"
+grille = np.array(transformation(path))
+affichage(grille)
+plus_court_chemin_non_récursif_maximisation_infomations(grille)
+print("finito")
+input()
+#  -4-5_1-1-1_0_1-0-5_ 30
+#  9181
+#  1-4-5_1-0-5_1-1-1_0_ 30
+#  9181
+#  1-4-5_1-1-1_1-0-5_0_ 30
+#  9181
+#  1-4-5_0_1-1-4_0_1-0-5_ 28
+#  9182
+#  0_1-1-5_0_1-0-3_0_ 30
+#  9182
+#  0_1-0-3_0_1-1-5_0_ 30
+#  9182
+#  0_1-4-4_1-4-4_1-0-3_ 30
+#  9183
+#  1-4-5_0_1-1-5_1-2-0_ 30
+#  9183
+#  1-4-5_1-1-5_0_1-2-0_ 30
+#  9183
+#  1-4-5_0_1-2-0_1-1-5
+
+
+#grille = np.array(transformation(path))
+#premier_niveau_0 = données_grille(grille)
+#
+#dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(grille)
+#
+#liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
+#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+#affichage(grille)
+#print(nb_cases_vides)
+#
+#d_niveau_1, _ = niveau_1((4,5), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+#affichage(grille)
+#print(nb_cases_vides)
+##  1-4-5_0_1-1-4_0_1-0-5_ 28
+#
+#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+#affichage(grille)
+#print(nb_cases_vides)
+#
+#
+#d_niveau_1, _ = niveau_1((1,4), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+#affichage(grille)
+#print(nb_cases_vides)
+#
+#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+#affichage(grille)
+#print(nb_cases_vides)
+#
+#d_niveau_1, _ = niveau_1((0,5), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+#affichage(grille)
+#print(nb_cases_vides)
+
+
+
+#idée d'amélioration : 
+# optimiser les niveaux 0 et 1
+# on peut s'interesser à la "quantité d'information" dans une grille :
+# ce serait le nombre de "false" dans le dictionnaire d
+
+#autre idée, si on trouve un chemin qui élimine une case en n niveaux 1, on ne regarde pas 
+#les chemins qui font plus de n niveaux 1 et qui ne donnent pas plus d'info 
+
+#nouvelle autre idée : on maximise la quantité d'info supplémentaire à chaque étape
+
+#nouvelle nouvelle autre idée : on dégage les chmins qui conduisent à des grilles et des d identiques en ne gardant que le moins cher
+
+#avec le premier algo, au bout de plus ou moins 2h
+#l'arbre a 450 000 branches et on n'a pas appris grand chose mdr
