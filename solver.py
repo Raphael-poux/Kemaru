@@ -532,9 +532,10 @@ def plus_court_chemin(grille,arbre,cout,cle_actuelle):
 
 def données_grille(grille):
     grille_copie = deepcopy(grille)
-    nb_ligne = len(grille[0])
-    nb_colonne = len(grille)
+    nb_colonne = len(grille[0])
+    nb_ligne = len(grille)
     nb_cages = nb_cage(grille)
+
 
     dico_est_trouve={}
     for i in range(nb_ligne):
@@ -582,7 +583,7 @@ def max_info(d):
             i=d[e][1]
             j=d[e][0]
             cle=e
-    return j,i,cle
+    return j,i,cle,d[cle][-1]
 
 
 
@@ -645,7 +646,7 @@ def plus_court_chemin_non_récursif(grille):
        # arbre[cle_actuelle+"2-"+str(x)+"-"+str(y)+"-"+str(z)+"-"+str(t)+"_"]=(new_grille,cout+new_cout+cout_n2)
 
 
-def plus_court_chemin_non_récursif_maximisation_infomations(grille):
+def plus_court_chemin_non_récursif_maximisation_informations(grille):
     """reprend le même algo que dessus mais cette fois, on veut maximiser la quantité d'informations"""
     cout=0
     historique=""
@@ -654,8 +655,6 @@ def plus_court_chemin_non_récursif_maximisation_infomations(grille):
     arbre = {}
     nb_cases_vides = sum(sum(grille[:,:,0] == -1))
     d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(current_grille)
-    print(d)
-    input()
     information = (~np.array(sum(d.values(), []))).sum() #faut pas poser trop de questions mais ça marche : 
                                                          #ça permet de compter le nombre total de False dans d (ie le nombre d'info qu'on a sur la grille)
     while nb_cases_vides != 0 :
@@ -665,7 +664,7 @@ def plus_court_chemin_non_récursif_maximisation_infomations(grille):
         if not ((len(historique)>=3 and historique[-3 : ]=="_0_") or historique == "0_") :
             grille_n0, d_n0, dico_est_trouve_n0, cages_valeurs_n0, _, cout_n0 =niveau_0(current_grille,d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
             new_information = (~np.array(sum(d_n0.values(), []))).sum()
-            arbre[historique+"0_"] = (grille_n0, new_information - information, (d_n0, dico_est_trouve_n0, cages_valeurs_n0, dico_taille, Taille, dico_voisins, cages_positions))
+            arbre[historique+"0_"] = (grille_n0, new_information - information, (d_n0, dico_est_trouve_n0, cages_valeurs_n0, dico_taille, Taille, dico_voisins, cages_positions), current_cout + cout_n0)
 
         liste_cases_vides = get_missing_values(current_grille, cages_valeurs_0, dico_taille)
         for case in liste_cases_vides :
@@ -674,26 +673,48 @@ def plus_court_chemin_non_récursif_maximisation_infomations(grille):
             new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(current_grille, d_niveau_1, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
             #liste_etapes.append((new_grille,[1,case]))
             new_information = (~np.array(sum(new_dico.values(), []))).sum()
-            arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,new_information - information, (new_dico, new_dico_est_trouve,new_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions))
-        min_grille, max_information, min_cle=max_info(arbre)
+            arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,new_information - information, (new_dico, new_dico_est_trouve,new_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions), current_cout+new_cout+cout_n1)
+        min_grille, max_information, min_cle, gros_cout =max_info(arbre)
         d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
         information = (~np.array(sum(d.values(), []))).sum()
         current_grille = min_grille
         historique = min_cle
+        current_cout = gros_cout
         del arbre[min_cle]
         nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
         print(min_cle, nb_cases_vides)
-        print(information)
+        print(information,gros_cout)
         print(len(arbre))
     return arbre
 
+# --------------------------------------------------------------------------------------
+# Démonstration du solveur de grilles  
+
+# d'abord, on choisit l'emplacemet de la grille
 path = "exemples_grilles/instances/v10_b100_14.txt"
+path = "exemples_grilles/instances/v8_b78_9.txt"
+path = "grille_mail.txt"
+
+# ensuite on transforme le fichier txt en une grille sympa
 grille = np.array(transformation(path))
+print("la grille en question")
 affichage(grille)
-plus_court_chemin_non_récursif_maximisation_infomations(grille)
+
+# ensuite on a le choix entre deux algo : la minimisation du cout ou la maximisation de la quantité 
+# d'informations (le deuxième est souvent bien plus rapide) 
+
+# mettre une des deux lignes en commentaire
+
+# plus_court_chemin_non_récursif(grille)
+plus_court_chemin_non_récursif_maximisation_informations(grille)
+
 print("finito")
 input()
-#  -4-5_1-1-1_0_1-0-5_ 30
+
+# ------------------------------------------------------------------------------------------
+
+#  -4-5_1-1-1_0_1-0-5_ 30 /// 1-0-3_1-3-2_ 0 132 12883
+#565
 #  9181
 #  1-4-5_1-0-5_1-1-1_0_ 30
 #  9181
