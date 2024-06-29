@@ -355,4 +355,4 @@ def plus_court_chemin_non_récursif_maximisation_informations(grille):
         nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
 
     _, _, best_path, _ = max_info(arbre)
-    return arbre
+    return best_path
