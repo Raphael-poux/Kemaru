@@ -209,9 +209,51 @@ def niveau_0_interface(grille, dico, dico_est_trouve_0, cages_valeurs_0, dico_ta
                         steps.append(((cases_dans_la_cage),deepcopy(d), seule_case_possible))
                         To_treat.append(seule_case_possible)
 
-    return grille_copie, steps
 
     if any(sum(v) == 0 for _,v in d.items()):
-        return grille_copie, d, dico_est_trouve, cages_valeurs, False # à changer ?
+        return grille_copie, steps, d, dico_est_trouve, cages_valeurs, False # à changer ?
                 
-    return grille_copie, d, dico_est_trouve, cages_valeurs, True, cout #rajouter d pour plus tard
+    return grille_copie, steps, d, dico_est_trouve, cages_valeurs, True, cout #rajouter d pour plus tard
+
+def niveau_1_interface(coord, grille, d, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
+    i,j=coord
+    L=d[coord]
+    possible=[]
+    steps_1 = {} #dico qui contient en clef les valeurs testées dans la case et en items les étapes 
+    cout=sum(L)**5
+    for e in range(len(L)):
+        if L[e]:
+            d_copie=copy.copy(d)
+            d_copie[(i,j)]=[False]*e + [True]+[False]*(len(L)-1-e)
+            grille_copie= copy.deepcopy(grille)
+            grille_copie[i][j][0]=e+1
+            dico_est_trouve_copie=copy.deepcopy(dico_est_trouve)    
+            dico_est_trouve_copie[(i,j)]=True
+            cages_valeurs_copie=copy.deepcopy(cages_valeurs)
+            cages_valeurs_copie[grille_copie[i][j][1]].append(e+1)
+            retours = niveau_0_interface(grille_copie, d_copie, dico_est_trouve_copie, cages_valeurs_copie, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            if retours[5]:
+                cout += retours[-1]
+                possible.append(retours[2])
+                steps_1[e] = retours[1]
+    steps_1[0] = concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne)
+    return steps_1
+
+
+def concurrent_de_union_de_dicos_(possible:list, nb_ligne:int, nb_colonne:int) :
+    n = len(possible)
+    dico = {}
+    for i in range(nb_ligne):
+        for j in range(nb_colonne):
+            dico[(i, j)] = union([possible[k][(i, j)] for k in range(n)])
+    return dico
+
+def union(liste) :
+    n = len(liste[0])
+    liste_union = [False]*n
+    for i in range(n):
+        for j in range(len(liste)):
+            if liste[j][i]:
+                liste_union[i] = True
+                break
+    return liste_union
