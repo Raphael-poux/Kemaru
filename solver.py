@@ -611,31 +611,41 @@ def plus_court_chemin_non_récursif(grille):
     arbre = {}
     nb_cases_vides = sum(sum(grille[:,:,0] == -1))
     d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(current_grille)
+    current_cages_valeurs = cages_valeurs_0
+
+    current_grille, d, dico_est_trouve_0, cages_valeurs_0, _, current_cout =niveau_0(current_grille,d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+    
     while nb_cases_vides != 0 :
         
         #on traite le cas où deux chemins différents donnent le même résultat
         #liste_etapes.append((grille_n0,[0]))
-        if not ((len(historique)>=3 and historique[-3 : ]=="_0_") or historique == "0_") :
-            grille_n0, d_n0, dico_est_trouve_n0, cages_valeurs_n0, _, cout_n0 =niveau_0(current_grille,d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-            arbre[historique+"0_"] = (grille_n0, current_cout + cout_n0, (d_n0, dico_est_trouve_n0, cages_valeurs_n0, dico_taille, Taille, dico_voisins, cages_positions))
+        # if not ((len(historique)>=3 and historique[-3 : ]=="_0_") or historique == "0_") :
+        #     grille_n0, d_n0, dico_est_trouve_n0, cages_valeurs_n0, _, cout_n0 =niveau_0(current_grille,d, dico_est_trouve_0, current_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+        #     arbre[historique+"0_"] = (grille_n0, current_cout + cout_n0, (d_n0, dico_est_trouve_n0, cages_valeurs_n0, dico_taille, Taille, dico_voisins, cages_positions))
 
-        liste_cases_vides = get_missing_values(current_grille, cages_valeurs_0, dico_taille)
+        liste_cases_vides = get_missing_values(current_grille, current_cages_valeurs, dico_taille)
         for case in liste_cases_vides :
             i,j=case
-            d_niveau_1, cout_n1 = niveau_1(case, current_grille, d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(current_grille, d_niveau_1, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            information_avant = (~np.array(sum(d.values(), []))).sum()
+
+            d_niveau_1, cout_n1 = niveau_1(case, current_grille, d, dico_est_trouve_0, current_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(current_grille, d_niveau_1, dico_est_trouve_0, current_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
             #liste_etapes.append((new_grille,[1,case]))
-            arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,current_cout+new_cout+cout_n1, (new_dico, new_dico_est_trouve,new_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions))
+            information_apres = (~np.array(sum(new_dico.values(), []))).sum()
+
+            # print(information_avant, information_apres)
+
+            if information_apres > information_avant:
+                arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,current_cout+new_cout+cout_n1, (new_dico, new_dico_est_trouve,new_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions))
+        
         min_grille, min_cout, min_cle=min(arbre)
-        d, dico_est_trouve_0, cages_valeurs_0, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
+        d, dico_est_trouve_0, current_cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
         current_cout = min_cout
         current_grille = min_grille
         historique = min_cle
         del arbre[min_cle]
         nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
-        print(min_cle, nb_cases_vides)
-        print(min_cout)
-        print(len(arbre))
+        print(min_cle, nb_cases_vides, min_cout, len(arbre), (~np.array(sum(d.values(), []))).sum())
     return arbre
 
    # list_pairs = get_pairs(liste_cases_vides)
