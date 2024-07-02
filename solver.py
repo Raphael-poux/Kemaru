@@ -169,7 +169,7 @@ def get_missing_values(grille, dico_taille ):
                     cages_valeurs[cage_number] = []
                 cages_valeurs[cage_number].append(grille[i][j][0])
 
-    liste_a_trier = [dico_taille[coord] - len(cages_valeurs[grille[i][j][1]]) for coord in List_coords]
+    liste_a_trier = [dico_taille[coord] - len(cages_valeurs[grille[coord[0]][coord[1]][1]]) for coord in List_coords]
     indices_tries = sorted(range(len(liste_a_trier)), key=lambda i: liste_a_trier[i])
 
     return [List_coords[i] for i in indices_tries]
@@ -703,7 +703,7 @@ def plus_court_chemin_non_récursif(grille):
         del arbre[min_cle]
         nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
         print(min_cle, nb_cases_vides, min_cout, len(arbre), (~np.array(sum(d.values(), []))).sum())
-        affichage(min_grille)
+    affichage(min_grille)
     return arbre
 
    # list_pairs = get_pairs(liste_cases_vides)
