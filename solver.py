@@ -51,7 +51,7 @@ def transformation(nom):
     return np.array(K)
             
         
-print(transformation("exemples_grilles/instances/v10_b1_3.txt"))
+# print(transformation("exemples_grilles/instances/v10_b1_3.txt"))
 
 #grille = np.array([[[-1, 1], [3, 1], [4, 1]], [[-1, 2], [1, 1], [-1, 1]], [[2, 2], [-1, 2], [-1, 2]]])
 #grille = np.array(transformation("exemples_grilles/instances/v10_b1_9.txt"))
@@ -693,7 +693,7 @@ def plus_court_chemin_non_récursif_maximisation_informations(grille):
 # d'abord, on choisit l'emplacemet de la grille
 path = "exemples_grilles/instances/v10_b100_14.txt"
 path = "exemples_grilles/instances/v8_b78_9.txt"
-path = "grille_mail.txt"
+path = "test.txt"
 
 # ensuite on transforme le fichier txt en une grille sympa
 grille = np.array(transformation(path))
@@ -705,11 +705,11 @@ affichage(grille)
 
 # mettre une des deux lignes en commentaire
 
-# plus_court_chemin_non_récursif(grille)
-plus_court_chemin_non_récursif_maximisation_informations(grille)
+plus_court_chemin_non_récursif(grille)
+# arbre = plus_court_chemin_non_récursif_maximisation_informations(grille)
 
 print("finito")
-input()
+# input()
 
 # ------------------------------------------------------------------------------------------
 
