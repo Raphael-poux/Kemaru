@@ -385,7 +385,7 @@ def niveau_2(coord1,coord2, grille, d, dico_est_trouve, dico_taille, Taille, dic
                 dico_est_trouve_copie[(i,j)]=True
                 dico_est_trouve_copie[(k,l)]=True
                 retours=niveau_0(grille_copie, d_copie, dico_est_trouve_copie, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-                if retours[4]:
+                if retours[3]:
                     cout += retours[-1]
                     possible.append(retours[1])
     return concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne), cout
@@ -680,6 +680,7 @@ def plus_court_chemin_non_récursif(grille):
         #     arbre[historique+"0_"] = (grille_n0, current_cout + cout_n0, (d_n0, dico_est_trouve_n0, dico_taille, Taille, dico_voisins, cages_positions))
 
         liste_cases_vides = get_missing_values(current_grille, dico_taille)
+        did_niveau_1 = False
         for case in liste_cases_vides :
             i,j=case
             information_avant = (~np.array(sum(d.values(), []))).sum()
@@ -692,8 +693,33 @@ def plus_court_chemin_non_récursif(grille):
             hash = nb_h(new_dico)
 
             if information_apres > information_avant and hash not in hashes.keys():
+                did_niveau_1 = True
                 hashes[hash] = new_dico
                 arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,current_cout+new_cout+cout_n1, (new_dico, new_dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions))
+
+        if not did_niveau_1:
+            pairs = get_pairs(liste_cases_vides)
+            pairs.sort(key=lambda p: dico_taille[p[0]] + dico_taille[p[1]] )
+            for case1, case2 in pairs:
+                information_avant = (~np.array(sum(d.values(), []))).sum()
+
+                d_niveau_2, cout_n2 = niveau_2(case1, case2, current_grille, d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                new_grille, new_dico, new_dico_est_trouve, new_grille_valide, new_cout = niveau_0(current_grille, d_niveau_2, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+                #liste_etapes.append((new_grille,[1,case]))
+                information_apres = (~np.array(sum(new_dico.values(), []))).sum()
+
+                # print(case1, case2, information_avant, information_apres)
+
+                hash = nb_h(new_dico)
+
+                if information_apres > information_avant and hash not in hashes.keys():
+                    hashes[hash] = new_dico
+                    i1,j1=case1
+                    i2,j2=case2
+                    new_cout = current_cout+new_cout+cout_n2 + (10000 if information_apres - information_avant <= 5 else 0)
+                    arbre = {}
+                    hashes = {}
+                    arbre[historique +"2-"+str(i1)+"-"+str(j1)+"-"+str(i2)+"-"+str(j2)+"_"]=(new_grille,new_cout, (new_dico, new_dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions))
         
         min_grille, min_cout, min_cle=min(arbre)
         d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
@@ -794,7 +820,8 @@ def affichage_etapes(liste_etape_str, grille):
 # d'abord, on choisit l'emplacemet de la grille
 path = "exemples_grilles/instances/v10_b100_14.txt"
 path = "exemples_grilles/instances/v8_b78_9.txt"
-path = "test.txt"
+path = "instances (1)/instances/v10_b33_11.txt"
+# path = "test.txt"
 
 # ensuite on transforme le fichier txt en une grille sympa
 grille = np.array(transformation(path))
