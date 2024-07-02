@@ -5,6 +5,16 @@ from collections import deque
 from copy import deepcopy
 import os
 import copy
+import time 
+
+temps_des_dicos = {"grille_n0" : 0, 
+                   "d_n0" : 0, 
+                   "dico_trouve_n0" : 0, 
+                   "cage_valeur_n0" : 0,
+                   "grille_n1" : 0, 
+                   "d_n1" : 0, 
+                   "dico_trouve_n1" : 0, 
+                   "cage_valeur_n1" : 0}
 
 def si_jamais(fichier):
     grid = {}
@@ -59,6 +69,15 @@ def affichage(grille):
     for ligne in grille:
         for elem in ligne:
             print(elem[0], end = ' ')
+        print()
+
+def affichage2(grille):
+    for i in range(len(grille)):
+        for j in range(len(grille[i])):
+            if (i, j) == (2, 1) :
+                print('A', end = ' ')
+            else :
+                print(grille[i][j][0], end = ' ')
         print()
 
 def nb_cage(grille):
@@ -208,10 +227,24 @@ def lancement(grille):
 def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
     """"return peu être quelquechose, ce quelquechose c'est la grille remplie au mieux"""
     cout = 0
+    t = time.time()
     grille_copie = deepcopy(grille)
+    temps_des_dicos["grille_n0"] += time.time() - t
+
+    t = time.time()
     d = deepcopy(dico)
-    dico_est_trouve=copy.deepcopy(dico_est_trouve_0)
-    To_treat = [(i, j) for i in range(nb_ligne) for j in range(nb_colonne)] 
+    temps_des_dicos["d_n0"] += time.time()- t
+
+    #t = time.time()
+    #dico_est_trouve=copy.deepcopy(dico_est_trouve_0)
+    #temps_des_dicos["dico_trouve_n0"] += time.time() - t
+    dico_est_trouve = {}
+
+    t = time.time()    
+    temps_des_dicos["cage_valeur_n0"] += time.time() - t
+
+    #To_treat = [(i, j) for i in range(nb_ligne) for j in range(nb_colonne)] 
+    To_treat = set([(i, j) for i in range(nb_ligne) for j in range(nb_colonne)]) 
    
     while len(To_treat):
         
@@ -231,17 +264,17 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
                             cout+=1
                         d[v][value - 1] = False
                         #pour le test :
-                        if not dico_est_trouve[v]:
-                            To_treat.append(v)
-                            To_treat.append((grille_copie[v[0]][v[1]][1],))
+                        if grille_copie[v[0]][v[1]][0] == -1:
+                            To_treat.add(v)
+                            To_treat.add((grille_copie[v[0]][v[1]][1],))
                 for v in cages_positions[grille_copie[i][j][1]]:
                     if v != element :
                         if d[v][value-1]:
                             cout+=1
                         d[v][value - 1] = False
-                        if not dico_est_trouve[v]:
-                            To_treat.append(v)
-                To_treat.append((cage,))
+                        if grille_copie[v[0]][v[1]][0] == -1:
+                            To_treat.add(v)
+                To_treat.add((cage,))
         # Cas 2 : on traite une cage
         else :
             # vérifier si une valeur n'est possible que dans une seule case de la cage
@@ -263,9 +296,9 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
                     seule_case_possible = cases_possibles[0]
                     d[seule_case_possible ] = [False]*len(d[seule_case_possible])
                     d[seule_case_possible ][i - 1] = True
-                    if not dico_est_trouve[seule_case_possible]:
+                    if grille_copie[seule_case_possible[0]][seule_case_possible[1]][0] == -1:
                         dico_est_trouve[seule_case_possible] = True
-                        To_treat.append(seule_case_possible)
+                        To_treat.add(seule_case_possible)
 
 
     if any(sum(v) == 0 for _,v in d.items()):
@@ -297,12 +330,28 @@ def niveau_1(coord, grille, d, dico_est_trouve, dico_taille, Taille, dico_voisin
     cout=sum(L)**5
     for e in range(len(L)):
         if L[e]:
+
+            t = time.time()
             d_copie=copy.copy(d)
+            temps_des_dicos["dico_trouve_n1"] += time.time() - t
+
             d_copie[(i,j)]=[False]*e + [True]+[False]*(len(L)-1-e)
+
+            t = time.time()
             grille_copie= copy.deepcopy(grille)
+            temps_des_dicos["grille_n1"] += time.time() - t
+
             grille_copie[i][j][0]=e+1
+
+            t = time.time()
             dico_est_trouve_copie=copy.deepcopy(dico_est_trouve)    #Complexité linéaire en n^2
+            temps_des_dicos["dico_trouve_n1"] += time.time() - t
+
             dico_est_trouve_copie[(i,j)]=True
+
+            t = time.time()
+            temps_des_dicos["cage_valeur_n1"] += time.time() - t
+
             retours=niveau_0(grille_copie, d_copie, dico_est_trouve_copie, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
             if retours[3]:
                 cout += retours[-1]
@@ -696,8 +745,40 @@ def plus_court_chemin_non_récursif_maximisation_informations(grille):
         print(len(arbre))
     return arbre
 
+
+def affichage_etapes(liste_etape_str, grille):
+    liste_etape = liste_etape_str.split("_")
+    dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(grille)
+
+    liste_cases_vides = get_missing_values(grille, cages_valeurs, dico_taille)
+    nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+    affichage(grille)
+    print(nb_cases_vides)
+    input()
+    for etape in liste_etape:
+        if etape[0] == "0":
+            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+            nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+            affichage(grille)
+            print(nb_cases_vides)
+            input()
+        else:
+            i, j = int(etape[2]), int(etape[4])
+            d_niveau_1, _ = niveau_1((i,j), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+            grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
+            nb_cases_vides = sum(sum(grille[:,:,0] == -1))
+            affichage(grille)
+            print(nb_cases_vides)
+            input()
+    print("toutes les étapes sont faites")
+    input()
+
+    
 # --------------------------------------------------------------------------------------
 # Démonstration du solveur de grilles  
+
 
 # d'abord, on choisit l'emplacemet de la grille
 path = "exemples_grilles/instances/v10_b100_14.txt"
@@ -706,21 +787,36 @@ path = "test.txt"
 
 # ensuite on transforme le fichier txt en une grille sympa
 grille = np.array(transformation(path))
-print("la grille en question")
-affichage(grille)
+#print("la grille en question")
+#affichage(grille)
 
+#affichage_etapes("0", grille)
 # ensuite on a le choix entre deux algo : la minimisation du cout ou la maximisation de la quantité 
 # d'informations (le deuxième est souvent bien plus rapide) 
 
 # mettre une des deux lignes en commentaire
 
+#plus_court_chemin_non_récursif(grille)
+t = time.time()
 plus_court_chemin_non_récursif(grille)
-# arbre = plus_court_chemin_non_récursif_maximisation_informations(grille)
+# plus_court_chemin_non_récursif_maximisation_informations(grille)
+print(time.time() - t)
 
+print(temps_des_dicos)
+a = 0
+for d in temps_des_dicos :
+    a += temps_des_dicos[d]
+
+print(a)
 print("finito")
-# input()
+input()
 
 # ------------------------------------------------------------------------------------------
+
+
+# niveau 0 amélioré
+# faut vraiment faire un truc pour la génération d'indices
+# pouvoir "faire" des niveaux 2
 
 #  -4-5_1-1-1_0_1-0-5_ 30 /// 1-0-3_1-3-2_ 0 132 12883
 #565
