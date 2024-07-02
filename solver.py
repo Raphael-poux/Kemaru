@@ -187,6 +187,13 @@ def valeure_trouvee(d,coord,grille,dico_est_trouve):
     grille[i][j][0]=k+1
     return True
 
+def nb_h(dico):
+    h = 0
+    for k,v in dico.items():
+        a = 887*k[0] + 991 * k[1] + 643*sum(v[i] * (1 << i) for i in range(len(v)))
+        h += a
+    return h
+    exit()
 
 def lancement(grille):
     grille_copie = deepcopy(grille)
@@ -662,6 +669,8 @@ def plus_court_chemin_non_récursif(grille):
 
     current_grille, d, dico_est_trouve_0, _, current_cout =niveau_0(current_grille,d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
     
+    hashes = {nb_h(d) : d}
+
     while nb_cases_vides != 0 :
         
         #on traite le cas où deux chemins différents donnent le même résultat
@@ -680,9 +689,10 @@ def plus_court_chemin_non_récursif(grille):
             #liste_etapes.append((new_grille,[1,case]))
             information_apres = (~np.array(sum(new_dico.values(), []))).sum()
 
-            # print(information_avant, information_apres)
+            hash = nb_h(new_dico)
 
-            if information_apres > information_avant:
+            if information_apres > information_avant and hash not in hashes.keys():
+                hashes[hash] = new_dico
                 arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,current_cout+new_cout+cout_n1, (new_dico, new_dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions))
         
         min_grille, min_cout, min_cle=min(arbre)
@@ -693,6 +703,7 @@ def plus_court_chemin_non_récursif(grille):
         del arbre[min_cle]
         nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
         print(min_cle, nb_cases_vides, min_cout, len(arbre), (~np.array(sum(d.values(), []))).sum())
+        affichage(min_grille)
     return arbre
 
    # list_pairs = get_pairs(liste_cases_vides)
