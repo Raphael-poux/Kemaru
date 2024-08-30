@@ -7,6 +7,7 @@ import os
 import copy
 import time 
 
+# dictionnaire du temps que le programme passe à copier certains dictionnaires avec deepcopy
 temps_des_dicos = {"grille_n0" : 0, 
                    "d_n0" : 0, 
                    "dico_trouve_n0" : 0, 
@@ -16,6 +17,7 @@ temps_des_dicos = {"grille_n0" : 0,
                    "dico_trouve_n1" : 0, 
                    "cage_valeur_n1" : 0}
 
+# a supprimer
 def si_jamais(fichier):
     grid = {}
     number_of_groups = 0
@@ -39,7 +41,18 @@ def si_jamais(fichier):
     return grid, number_of_groups + 1
 
 def transformation(nom):
-    
+    """
+    Transforme le fichier .txt contenant les informations de la grille
+    en un array numpy.
+
+    Paramètre :
+    -----------
+    nom : string, chemin d'accès à la grille à ouvrir
+
+    Sortie :
+    --------
+    np.array, la représentation de la grille sous forme d'array numpy
+    """
     with open(nom,'r') as fichier:
         lignes = fichier.readlines()
         values= lignes[-1].split(sep=" ")
@@ -60,17 +73,27 @@ def transformation(nom):
                 K[int(num_ligne)][int(num_col)] = [int(valeur), int(num_cage) + 1]
     return np.array(K)
             
-        
-# print(transformation("exemples_grilles/instances/v10_b1_3.txt"))
-
-#grille = np.array([[[-1, 1], [3, 1], [4, 1]], [[-1, 2], [1, 1], [-1, 1]], [[2, 2], [-1, 2], [-1, 2]]])
-#grille = np.array(transformation("exemples_grilles/instances/v10_b1_9.txt"))
 def affichage(grille):
+    """
+    Affiche une grille dans le terminal de façon minimaliste 
+    (ne donne pas les frontières des différentes cages). Fonction utile 
+    uniquement pour le debug.
+
+    Paramètre :
+    -----------
+    grille : np.array, une grille retournée par la fonction transformation
+
+    Sortie :
+    --------
+    rien
+    
+    """
     for ligne in grille:
         for elem in ligne:
             print(elem[0], end = ' ')
         print()
 
+# a supprimer
 def affichage2(grille):
     for i in range(len(grille)):
         for j in range(len(grille[i])):
@@ -81,25 +104,54 @@ def affichage2(grille):
         print()
 
 def nb_cage(grille):
-    """""renvoie le nombre de cages"""
+    """Pour obtenir le nombre de cages d'une grille
+
+    Paramètre :
+    -----------
+    grille : np.array, une grille
+
+    Sortie :
+    --------
+    Renvoie le nombre de cages
+    """
     nb_ligne = len(grille)
     nb_colonne = len(grille[0])
     return np.max(grille[:,:,1])
     
 def taille_cage(grille, num_cage):
-    """donne la taille de la cage"""
+    """Donne le nombre de cases dans une cage
+    
+    Paramètres :
+    ------------
+    grille : np.array, une grille
+    num_cage : entier, le numéro de la cage
+    
+    Sortie :
+    --------
+    entier, la taile de la cage choisie"""
     cage = grille[grille[:, :, 1] == num_cage]
     return len(cage)
 
 def dico_des_voisins(nb_ligne, nb_colonne):
+    """
+    Donne le dictionnaire des cases voisines 
+
+    Paramètres :
+    ------------
+    nb_ligne : int, le nombre de lignes dans la grille
+    nb_colonne : int, le nombre de colonnes dans la grille
+
+    Sortie :
+    --------
+    dict, tel que pour une case (i,j) de la grille, d[(i,j)] soit la liste 
+    des cases voisines de la case (i,j)    
+    """
     dico = {}
     for i in range(nb_ligne):
         for j in range(nb_colonne):
             if i == 0:
                 if j == 0:
                     dico[(i, j)] = [(i + 1, j + 1), (i + 1, j), (i, j + 1)]
-    ###d est un dictionnaire avec pour clés les coordonnées des cases et en valeurs une liste L de taille 9
-    ### où L[i] vaut True si i+1 est une valeur possible pour la case en question et False si la case ne peut pas avoir la valeur i+1
 
                 elif j == nb_colonne - 1:
                     dico[(i, j)] = [(i + 1, j - 1), (i + 1, j), (i, j - 1)]
@@ -133,8 +185,29 @@ def dico_des_voisins(nb_ligne, nb_colonne):
 
     return dico
 
-
 def dico_cages(grille, nb_cage):
+    """
+    Donne des dictionnaires qui font le lien entre les cases d'une même cage 
+
+    Paramètres :
+    ------------
+    grille : np.array, une grille
+    nb_cage : int, le nombre de cages dans la grille
+    
+    Sortie :
+    --------
+    tuple(dict_1, dict_2), dict_1 donne les coordonnées des cases d'une certaine cage, 
+    dict_2 donne les valeurs trouvées dans une certaine cage.
+
+    Exemple :
+    ---------
+    dict_1, dict_2 = dico_cages(grille, nb_cage)
+
+    dict_1[2] == [(1,1), (1,2)] >>> True : signifie que la cage n°2 est composée des cases (1,1) et (1,2)
+
+    dict_2[3] == [1,3,5]  >>> True : signifie que les numéros  1,3 et 5 ont été placés dans la cage n°3 
+    
+    """
     dico_valeurs = { i : [] for i in range(1,nb_cage+1)}
     dico_positions = { i : [] for i in range(1,nb_cage+1)}
     for i in range(len(grille)):
@@ -145,8 +218,19 @@ def dico_cages(grille, nb_cage):
                 dico_valeurs[cage].append(value)
     return dico_positions, dico_valeurs
 
-def solved(grille)->bool:  
-    """return True if grille is full, else return False"""    
+def solved(grille)->bool: 
+    """
+    Pour savoir si une grille est résolue
+
+    Paramètres :
+    ------------
+    grille : np.array
+
+    Sortie :
+    --------
+    Bool, True si la grille est résolue et False sinon
+
+    """    
     nb_ligne = len(grille)
     nb_colonne = len(grille[0])
     for i in range(nb_ligne):
@@ -155,7 +239,19 @@ def solved(grille)->bool:
     return True
 
 def get_missing_values(grille, dico_taille ):
-    """return the coordinates of cases with no value"""
+    """
+    Renvoie les coordonnées des cases vides
+
+    Paramètres :
+    ------------
+    grille : np.array
+    dico_taille : dict, tel que dico_taille[(i,j)] donne la taille de la cage de la case (i,j)
+
+    Sortie :
+    --------
+    list, liste des coordonnées des cases vides, triée de sorte à mettre d'abord les cases des
+    cages où il y a peu de cases vides.
+    """
     nb_ligne = len(grille)
     nb_colonne = len(grille[0])
     List_coords = []
@@ -175,7 +271,21 @@ def get_missing_values(grille, dico_taille ):
     return [List_coords[i] for i in indices_tries]
 
 def valeure_trouvee(d,coord,grille,dico_est_trouve):
-    """renvoie True s'il ne reste qu'une valeur possible pour la case de coordonnées coord"""
+    """
+    Renvoie True s'il ne reste qu'une valeur possible pour la case de coordonnées coord
+
+    Paramètres :
+    ------------
+    d : dict, cf la fonction donnees_grille
+    coord : tuple, coordonnées d'une case
+    grille : np.array, une grille
+    dico_est_trouve : dict, cf donnees_grille
+    
+    Sortie :
+    --------
+    Bool
+    
+    """
     table = d[coord]
     (i,j)=coord
     if sum(table) != 1: 
@@ -188,6 +298,18 @@ def valeure_trouvee(d,coord,grille,dico_est_trouve):
     return True
 
 def nb_h(dico):
+    """
+    Fonction de hachage
+
+    Paramètres :
+    ------------
+    dico : dict, un dictionnaire
+
+    Sortie :
+    --------
+    int
+
+    """
     h = 0
     for k,v in dico.items():
         a = 887*k[0] + 991 * k[1] + 643*sum(v[i] * (1 << i) for i in range(len(v)))
@@ -196,6 +318,19 @@ def nb_h(dico):
     exit()
 
 def lancement(grille):
+    """
+    Création des dictionnaires annexes utiles pour la recherche du plus court chemin, 
+    identique à donnees_grille + application du niveau_0
+
+    Paramètres :
+    ------------
+    grille : np.array
+
+    Sortie :
+    --------
+    cf donnees_grilles et niveau_0
+
+    """
     grille_copie = deepcopy(grille)
     nb_ligne = len(grille[0])
     nb_colonne = len(grille)
@@ -233,6 +368,16 @@ def lancement(grille):
     
 def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
     """"return peu être quelquechose, ce quelquechose c'est la grille remplie au mieux"""
+    """
+    Applique l'algorithme de niveau 0 à une copie de la grille.
+
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     cout = 0
     t = time.time()
     grille_copie = deepcopy(grille)
@@ -242,9 +387,6 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
     d = deepcopy(dico)
     temps_des_dicos["d_n0"] += time.time()- t
 
-    #t = time.time()
-    #dico_est_trouve=copy.deepcopy(dico_est_trouve_0)
-    #temps_des_dicos["dico_trouve_n0"] += time.time() - t
     dico_est_trouve = {}
 
     t = time.time()    
@@ -255,9 +397,6 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
    
     while len(To_treat):
         
-        #print("la grille")
-        #affichage(grille_copie)
-        #input()
         # cas 1 : on traite une case
         element = To_treat.pop()
         if len(element) == 2:
@@ -270,7 +409,6 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
                         if d[v][value-1]:
                             cout+=1
                         d[v][value - 1] = False
-                        #pour le test :
                         if grille_copie[v[0]][v[1]][0] == -1:
                             To_treat.add(v)
                             To_treat.add((grille_copie[v[0]][v[1]][1],))
@@ -285,7 +423,6 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
         # Cas 2 : on traite une cage
         else :
             # vérifier si une valeur n'est possible que dans une seule case de la cage
-            # cage = tuple de la forme (numéro de cage)
             num_cage = element[0]
             nb_elements_cage = Taille[num_cage-1]
             cases_dans_la_cage = cages_positions[num_cage]
@@ -297,9 +434,9 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
                         print(len(d[case]))
                     if (d[case][i - 1] == True) :
                         cases_possibles.append(case)
-                cout+=len(cases_dans_la_cage) # ici ?
+                cout+=len(cases_dans_la_cage) 
                 if len(cases_possibles) == 1 :
-                    # cout+=len(cases_dans_la_cage) # ou là ?
+                    # cout+=len(cases_dans_la_cage) 
                     seule_case_possible = cases_possibles[0]
                     d[seule_case_possible ] = [False]*len(d[seule_case_possible])
                     d[seule_case_possible ][i - 1] = True
@@ -309,7 +446,7 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
 
 
     if any(sum(v) == 0 for _,v in d.items()):
-        return grille_copie, d, dico_est_trouve, False # à changer ?
+        return grille_copie, d, dico_est_trouve, False, 0
                 
     return grille_copie, d, dico_est_trouve, True, cout #rajouter d pour plus tard
 
@@ -321,16 +458,29 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
 
 
 def cases_restantes(dico_est_trouve):
+   """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
    return sum(list(dico_est_trouve.values()))
-
-
-
 
 # v10_b1_15.txt : non résolue avec le niveau 0
 
-
-
 def niveau_1(coord, grille, d, dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     i,j=coord
     L=d[coord]
     possible=[]
@@ -367,6 +517,15 @@ def niveau_1(coord, grille, d, dico_est_trouve, dico_taille, Taille, dico_voisin
     return concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne), cout
 
 def niveau_2(coord1,coord2, grille, d, dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne) :
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     (i,j),(k,l)=coord1,coord2
     L1=d[coord1]
     L2 = d[coord2]
@@ -407,6 +566,15 @@ def get_pairs(ens:list)->list:
     return list_pairs
 
 def concurrent_de_union_de_dicos_(possible:list, nb_ligne:int, nb_colonne:int) :
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     n = len(possible)
     dico = {}
     for i in range(nb_ligne):
@@ -415,6 +583,15 @@ def concurrent_de_union_de_dicos_(possible:list, nb_ligne:int, nb_colonne:int) :
     return dico
     
 def union(liste) :
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     n = len(liste[0])
     liste_union = [False]*n
     for i in range(n):
@@ -427,6 +604,15 @@ def union(liste) :
     
             
 def union_de_dicos(possible:list, nb_ligne:int, nb_colonnes:int)->dict:
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     if len(possible):
         A_union = [[[possible[0][(i,j)][k] for k in range(len(possible[0][(i,j)]))]for j in range(nb_colonnes) ]for i in range(nb_ligne) ]
         for dico in possible:
@@ -437,6 +623,15 @@ def union_de_dicos(possible:list, nb_ligne:int, nb_colonnes:int)->dict:
     
             
 def main(path) :
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     #path = "exemples_grilles/instances/v10_b100_1.txt"
     grille = np.array(transformation(path))
     premier_niveau_0 = lancement(grille)
@@ -528,6 +723,15 @@ print()
 #v10_b33_11.txt non résolue avec le niveau 1
 
 def test_niveaux_et_couts(path):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     grille = np.array(transformation(path))
     premier_niveau_0 = lancement(grille)
     grille, dico, dico_est_trouve, grille_valide, cout, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne = premier_niveau_0
@@ -539,6 +743,15 @@ def test_niveaux_et_couts(path):
     
 
 def plus_court_chemin(grille,arbre,cout,cle_actuelle):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     """ prend une grille en entrée et calcule le plus court chemin de résolution
     grille : la configuration initiale
     arbre : dico qui contient l'abre du jeu. Les clefs sont de la forme 
@@ -586,6 +799,15 @@ def plus_court_chemin(grille,arbre,cout,cle_actuelle):
 #test_niveaux_et_couts("exemples_grilles/instances/v10_b100_11.txt")
 
 def données_grille(grille):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     grille_copie = deepcopy(grille)
     nb_colonne = len(grille[0])
     nb_ligne = len(grille)
@@ -619,6 +841,15 @@ def données_grille(grille):
     return d, dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne
 
 def min(d):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     i=None
     j=None
     cle=None
@@ -630,6 +861,15 @@ def min(d):
     return j,i,cle
             
 def max_info(d):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     i=None
     j=None
     cle=None
@@ -659,6 +899,15 @@ def max_info(d):
 #v10_b12_14.txt 1
 
 def plus_court_chemin_non_récursif(grille):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     cout=0
     historique=""
     current_grille=grille
@@ -741,6 +990,15 @@ def plus_court_chemin_non_récursif(grille):
 
 
 def plus_court_chemin_non_récursif_maximisation_informations(grille):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     """reprend le même algo que dessus mais cette fois, on veut maximiser la quantité d'informations"""
     cout=0
     historique=""
@@ -784,6 +1042,15 @@ def plus_court_chemin_non_récursif_maximisation_informations(grille):
 
 
 def affichage_etapes(liste_etape_str, grille):
+    """
+    
+    Paramètres :
+    ------------
+    
+    Sortie :
+    --------
+    
+    """
     liste_etape = liste_etape_str.split("_")
     dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(grille)
 
@@ -849,92 +1116,3 @@ print("finito")
 input()
 
 # ------------------------------------------------------------------------------------------
-
-
-# niveau 0 amélioré
-# faut vraiment faire un truc pour la génération d'indices
-# pouvoir "faire" des niveaux 2
-
-#  -4-5_1-1-1_0_1-0-5_ 30 /// 1-0-3_1-3-2_ 0 132 12883
-#565
-#  9181
-#  1-4-5_1-0-5_1-1-1_0_ 30
-#  9181
-#  1-4-5_1-1-1_1-0-5_0_ 30
-#  9181
-#  1-4-5_0_1-1-4_0_1-0-5_ 28
-#  9182
-#  0_1-1-5_0_1-0-3_0_ 30
-#  9182
-#  0_1-0-3_0_1-1-5_0_ 30
-#  9182
-#  0_1-4-4_1-4-4_1-0-3_ 30
-#  9183
-#  1-4-5_0_1-1-5_1-2-0_ 30
-#  9183
-#  1-4-5_1-1-5_0_1-2-0_ 30
-#  9183
-#  1-4-5_0_1-2-0_1-1-5
-
-
-#grille = np.array(transformation(path))
-#premier_niveau_0 = données_grille(grille)
-#
-#dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(grille)
-#
-#liste_cases_vides = get_missing_values(grille, dico_taille)
-#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
-#affichage(grille)
-#print(nb_cases_vides)
-#
-#d_niveau_1, _ = niveau_1((4,5), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
-#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
-#affichage(grille)
-#print(nb_cases_vides)
-##  1-4-5_0_1-1-4_0_1-0-5_ 28
-#
-#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
-#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
-#affichage(grille)
-#print(nb_cases_vides)
-#
-#
-#d_niveau_1, _ = niveau_1((1,4), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
-#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
-#affichage(grille)
-#print(nb_cases_vides)
-#
-#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
-#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
-#affichage(grille)
-#print(nb_cases_vides)
-#
-#d_niveau_1, _ = niveau_1((0,5), grille, dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-#grille, dico, dico_est_trouve, cages_valeurs = new_grille, new_dico, new_dico_est_trouve, new_cages_valeurs
-#nb_cases_vides = sum(sum(grille[:,:,0] == -1))
-#affichage(grille)
-#print(nb_cases_vides)
-
-
-
-#idée d'amélioration : 
-# optimiser les niveaux 0 et 1
-# on peut s'interesser à la "quantité d'information" dans une grille :
-# ce serait le nombre de "false" dans le dictionnaire d
-
-#autre idée, si on trouve un chemin qui élimine une case en n niveaux 1, on ne regarde pas 
-#les chemins qui font plus de n niveaux 1 et qui ne donnent pas plus d'info 
-
-#nouvelle autre idée : on maximise la quantité d'info supplémentaire à chaque étape
-
-#nouvelle nouvelle autre idée : on dégage les chmins qui conduisent à des grilles et des d identiques en ne gardant que le moins cher
-
-#avec le premier algo, au bout de plus ou moins 2h
-#l'arbre a 450 000 branches et on n'a pas appris grand chose mdr
