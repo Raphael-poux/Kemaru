@@ -30,6 +30,17 @@ for filename in os.listdir(instances):
 
 # +
 def read_random_file():
+    """
+    Choisit un fichier au hazard un fichier dans la liste des fichiers contenant les grilles et transforme la représentation de celle-ci
+
+    Paramètres : Aucun
+    
+    Sortie :
+    ------------
+    grid : list, une représentation de la grille choisie sous forme de tableau 3d
+    number_of_groups : int, le nombre de groupes de la grille
+    
+    """
     # Choose a random file from the list
     random_file = random.choice(files)
     grid = {}

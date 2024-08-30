@@ -58,3 +58,22 @@ On pourrait continuer ainsi en supposant 3, 4 ... N cases si le niveau 2 ne suff
 
 *NB : certaines des grilles testées étaient loin d'être faciles (elles étaient même très difficiles), ce qui nous permet de penser que le niveau 2 suffit pour toutes les grilles qui existent*
 
+# Partie interface
+Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame.
+
+## Interface joueur
+Deux modes de jeu distincts ont étés implémentés. Le premier permet a joueur de résoudre la grille par lui-même. Il peut pour s'aider afficher les possibilités dans chaque case et les éliminer manuellement.
+
+## Représentation des différents niveaux
+Le second mode de jeu permet de voir le chemin de résolution d'une grille par l'algorithme précedemment décrit. Seuls des représentations pour les niveaux 0 et 1 ont étés implémentés, par soucis de lisibilité. Cela suffit pour résoudre la plupart des grilles de Kemaru disponibles. 
+
+### Représentation du niveau 0
+Pour représenter le niveau 0, la case qui gagne de l'information en perdant une possibililité est affichée en bleu tandis que la ou les cases utilisés pour déterminer cette information sont affichées en rouge. Le joueur fait avancer la résolution en presssant la touche S.
+
+### Représentation du niveau 1
+Pour représenter le niveau 1, on scinde la grille en autant de possibilités que comporte la case de laquelle part la résolution ( celle sur laquelle différentes hypothèses sont faites ). Une résolution de niveau 0 s'engage alors sur chaqu'une de ces grilles. Pour faciliter l'affichage de plusieurs grilles, toutes celles-ci sont déformés pour être carrés.
+
+### (non implémenté) Représentation des niveau supérieurs
+Pour n'importe quel autre niveau, le seul paramètre qui change par rapport au niveau 1 est le nombre potentiel de possibilités. On pourrait alors représenter n'importe quel niveau de résolution en scindant la grille en autant de possibilité que d'hypothèse que l'algorithme de résolution fait sur une (on a alors une résolution de niveau 1) ou plusieurs cases.
+
+
