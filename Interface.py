@@ -1,31 +1,14 @@
-# ---
-# jupyter:
-#   jupytext:
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.1
-#   kernelspec:
-#     display_name: Python 3 (ipykernel)
-#     language: python
-#     name: python3
-# ---
-
-# +
 import pygame 
 import sys
 
 black = (0, 0, 0)
 white = (255, 255, 255)
 screen_info = pygame.display.Info()
-#width = screen_info.current_w
-#height = screen_info.current_h
-width = 900
-height = 720
+width = screen_info.current_w
+height = screen_info.current_h
 police = pygame.font.Font(None, int(60/900*width))
 button_width = int(150/900*width)
-button_height = int(55/900*height)
+button_height = int(80/900*height)
 x_middle = int((width - button_width)/2)
 y_middle = int((height - button_height)/2)
 gap = int(3/2*button_height)
@@ -77,12 +60,15 @@ class background:
             screen.blit(self.image, (0, 0))
 
 def initialising():
-    Play = button('Play', (x_middle, y_middle, button_width, button_height), 'difficulty_level', 'menu', edge_color = white, edge_width = 1)
-    Rules = button('Rules', (x_middle, y_middle + gap, button_width, button_height), 'rules', 'menu', edge_color = white, edge_width = 1)
-    Music = button('Music', (x_middle, y_middle + 2*gap, button_width, button_height), 'music', 'menu', edge_color = white, edge_width = 1)
-    Easy = button('Easy', (x_middle, y_middle + gap, button_width, button_height), 'game', 'difficulty_level', secondary_state = 'easy', edge_color = white, edge_width = 1)
-    Medium = button('Medium', (x_middle, y_middle + 2*gap, button_width, button_height), 'game', 'difficulty_level', secondary_state = 'medium', edge_color = white, edge_width = 1)
-    Hard = button('Hard', (x_middle, y_middle + 3*gap, button_width, button_height), 'game', 'difficulty_level', secondary_state = 'hard', edge_color = white, edge_width = 1)
-    Menu = button('Menu',(x_middle, y_middle, button_width, button_height), 'menu', 'victory', 'difficulty_level', 'rules', edge_color = white, edge_width = 1)
-    Quit = button('Quit', (x_middle, y_middle + 3*gap, button_width, button_height), 'quit', 'menu', edge_color = white, edge_width = 1)
-    return [Play, Rules, Music, Easy, Medium, Hard, Menu, Quit]
+    Play = button('Modes', (x_middle, y_middle, button_width, button_height), 'Modes', 'menu', 'difficulty_level', edge_color = white, edge_width = 5)
+    Rules = button('Rules', (x_middle, y_middle + gap, button_width, button_height), 'rules', 'menu', edge_color = white, edge_width = 5)
+    Music = button('Music', (x_middle, y_middle + 2*gap, button_width, button_height), 'music', 'menu', edge_color = white, edge_width = 5)
+    Player_mode = button('Play', (x_middle, y_middle + gap, button_width, button_height), 'difficulty_level', 'Modes', edge_color = white, edge_width = 5)
+    Computer_mode = button('AI', (x_middle, y_middle + 2*gap, button_width, button_height), 'difficulty_level_ai', 'Modes', edge_color = white, edge_width = 5)
+    Easy = button('Easy', (x_middle, y_middle + gap, button_width, button_height), 'game', 'difficulty_level', 'difficulty_level_ai', secondary_state = 'easy', edge_color = white, edge_width = 5)
+    Medium = button('Mid', (x_middle, y_middle + 2*gap, button_width, button_height), 'game', 'difficulty_level', 'difficulty_level_ai', secondary_state = 'medium', edge_color = white, edge_width = 5)
+    Hard = button('Hard', (x_middle, y_middle + 3*gap, button_width, button_height), 'game', 'difficulty_level', 'difficulty_level_ai', secondary_state = 'hard', edge_color = white, edge_width = 5)
+    Menu = button('Menu',(x_middle, y_middle, button_width, button_height), 'menu', 'victory', 'Modes', 'rules', edge_color = white, edge_width = 5)
+    Quit = button('Quit', (x_middle, y_middle + 3*gap, button_width, button_height), 'quit', 'menu', edge_color = white, edge_width = 5)
+    return [Play, Rules, Music, Player_mode, Computer_mode, Easy, Medium, Hard, Menu, Quit]
+

@@ -1,17 +1,3 @@
-# ---
-# jupyter:
-#   jupytext:
-#     text_representation:
-#       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.1
-#   kernelspec:
-#     display_name: Python 3 (ipykernel)
-#     language: python
-#     name: python3
-# ---
-
 import pygame
 
 
@@ -23,6 +9,9 @@ class statemachine:
         self.music = True
         self.transition = (initial_state, initial_state)
         self.transition_state = False
+        self.grid_dico = False
+        self.niveau_0 = True
+        self.ai = False
     
     def button_is_clicked_on(self, event, button):
         if (not self.transition_state) and self.current_state in button.entry_states and button.surface.collidepoint(event.pos):
@@ -52,5 +41,8 @@ class statemachine:
         
         if self.current_state == 'how_to_play':
             pass
+        
+    
+
         
     
