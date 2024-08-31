@@ -6,6 +6,7 @@ from copy import deepcopy
 import os
 import copy
 import time 
+import sys 
 
 # dictionnaire du temps que le programme passe à copier certains dictionnaires avec deepcopy
 temps_des_dicos = {"grille_n0" : 0, 
@@ -903,7 +904,7 @@ def plus_court_chemin_non_récursif(grille):
     
     """
     cout=0
-    historique=""
+    historique="0_"
     current_grille=grille
     current_cout = 0
     arbre = {}
@@ -911,9 +912,8 @@ def plus_court_chemin_non_récursif(grille):
     d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(current_grille)
 
     current_grille, d, dico_est_trouve_0, _, current_cout =niveau_0(current_grille,d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-    
+    nb_cases_vides = sum(sum(current_grille[:,:,0] == -1))
     hashes = {nb_h(d) : d}
-
     while nb_cases_vides != 0 :
         
         #on traite le cas où deux chemins différents donnent le même résultat
@@ -971,8 +971,12 @@ def plus_court_chemin_non_récursif(grille):
         historique = min_cle
         del arbre[min_cle]
         nb_cases_vides = sum(sum(min_grille[:,:,0] == -1))
-        print(min_cle, nb_cases_vides, min_cout, len(arbre), (~np.array(sum(d.values(), []))).sum())
-    affichage(min_grille)
+        #print(min_cle, nb_cases_vides, min_cout, len(arbre), (~np.array(sum(d.values(), []))).sum())
+    print("Grille résolue :")
+    print()
+    affichage(current_grille)
+    print()
+    print("Chemin de résolution : " + historique)
     return arbre
 
 
@@ -1068,39 +1072,71 @@ def affichage_etapes(liste_etape_str, grille):
 
     
 # --------------------------------------------------------------------------------------
-# Démonstration du solveur de grilles  
 
 
-# d'abord, on choisit l'emplacemet de la grille
-path = "exemples_grilles/instances/v10_b100_14.txt"
-path = "instances/v10_b100_14.txt"
-# path = "test.txt"
+if __name__ == "__main__":
+    while True :
+        os.system("cls")
+        print(" ~~~~ SOLVEUR DE GRILLES KEMARU ~~~~")
+        print("Entrez ... ")
+        print(" ... un chemin d'accès vers une grille valide")
+        print(" ... h pour de l'aide sur le fonctionnement du solveur")
+        print(" ... q pour quitter le programme")
+        commande = input()
+        if commande == "h" :
+            os.system("cls")
+            print(">> Ce programme sert à montrer la résolution de base d'une grille de Kemaru")
+            print("en trouvant le plus court chemin de résolution d'une grille donnée.")
+            print()
+            print(">> Veuillez rentrer le chemin d'accès vers un fichier .txt contenant une grille valide.")
+            print()
+            print(">> Le programme affiche le plus court chemin de résolution, la grille remplie ainsi que les")
+            print("temps passés à copier les différents dictionnaires (pour le debug)")
+            print()
+            print(">> exemple de syntaxe pour le chemin de résolution : ")
+            print("0_1-2-5_1-4-4 signifie ")
+            print(".faire un niveau 0")
+            print(".puis faire un niveau 1 sur la case (2,5)")
+            print(".puis faire un niveau 1 sur la case (4,4)")
+            print()
+            print()
+            print()
+            print("Appuyer sur entrée pour revenir au début")
+            input()
 
-# ensuite on transforme le fichier txt en une grille sympa
-grille = np.array(transformation(path))
-#print("la grille en question")
-#affichage(grille)
+        elif commande == "q":
+            exit()
+        else :
+            path = commande
 
-#affichage_etapes("0", grille)
-# ensuite on a le choix entre deux algo : la minimisation du cout ou la maximisation de la quantité 
-# d'informations (le deuxième est souvent bien plus rapide) 
+            # on transforme le fichier txt en une grille sympa
+            grille = np.array(transformation(path))
+            print("Grille avant résolution (-1 = case vide) :")
+            print()
+            affichage(grille)
 
-# mettre une des deux lignes en commentaire
+            print()
+            print("Résolution en cours, cela peut prendre plusieurs secondes pour les grilles difficiles ...")
+            print()
+            t = time.time()
+            plus_court_chemin_non_récursif(grille)
+            # plus_court_chemin_non_récursif_maximisation_informations(grille)
+            print()
+            print("Résolution effectuée en " + str(time.time() - t) + " secondes")
+            print()
+            print("Temps passés à la copie des dictionnaires")
+            print(temps_des_dicos)
+            #a = 0
+            #for d in temps_des_dicos :
+            #    a += temps_des_dicos[d]
+            #print(a)
+            #print("finito")
+            print("Appuyer sur entrée pour revenir au début")
+            input()
 
-#plus_court_chemin_non_récursif(grille)
-t = time.time()
-plus_court_chemin_non_récursif(grille)
-# plus_court_chemin_non_récursif_maximisation_informations(grille)
-print(time.time() - t)
 
-print(temps_des_dicos)
-a = 0
-for d in temps_des_dicos :
-    a += temps_des_dicos[d]
 
-print(a)
-print("finito")
-input()
+
 
 # ------------------------------------------------------------------------------------------
 
