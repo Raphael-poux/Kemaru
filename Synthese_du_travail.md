@@ -58,6 +58,13 @@ On pourrait continuer ainsi en supposant 3, 4 ... N cases si le niveau 2 ne suff
 
 *NB : certaines des grilles testées étaient loin d'être faciles (elles étaient même très difficiles), ce qui nous permet de penser que le niveau 2 suffit pour toutes les grilles qui existent*
 
+## Plus court chemin 
+TODO : détailler la recherche du plus court chemin
+
+## Implémentation
+TODO : illustrer les explications avec des bouts de code
+
+
 # Partie interface
 Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame.
 
