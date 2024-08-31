@@ -60,6 +60,18 @@ class cell:
         
 
 def grid_filled(grid, game_state):
+    """
+    Quitte l'écran de jeu si la grille est remplie
+
+    Paramètre :
+    -----------
+    grid : List, tableau 2d contenant les cellules
+    game_state : String, indique l'état du jeu
+
+    Sortie :
+    --------
+    None
+    """
     for row in grid:
         for cell in row:
             if not cell.value:
@@ -71,6 +83,24 @@ def grid_filled(grid, game_state):
         
             
 def grid_and_groups_creation(file, list_x, list_y):
+    """
+    Créé les éléments qui permettrons l'affichage de la grille et ses éléments
+
+    Paramètre :
+    -----------
+    file : Tuple, la grille sous forme de tableau 3d avec le nombre de groupes de cette grille
+    list_x : List
+    list_y : List
+
+    Sortie :
+    --------
+    grid : List, Tableau 2d avec un objet pygame par case
+    groups : List, contient les listes des coordonnées des cases regroupés par groupes
+    cell_width : int, la hauteur d'une cellule en pixels
+    cell_height : int, largeur d'une cellule en pixels
+    h : int, hauteur de la grille
+    w : int,largeur de la grille
+    """
     nb_grilles = len(list_x)
     matrix, number_of_groups = file
     h = len(matrix)
@@ -89,6 +119,9 @@ def grid_and_groups_creation(file, list_x, list_y):
 
 
 def grid_display(grids, screen, grid_dico, ai):
+    """
+    Affiche la grille 
+    """
     for grid in grids:
         for row in grid:
             for cell in row:
