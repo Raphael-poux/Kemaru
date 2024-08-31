@@ -367,15 +367,25 @@ def lancement(grille):
     return niv0 + variables
     
 def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
-    """"return peu être quelquechose, ce quelquechose c'est la grille remplie au mieux"""
     """
     Applique l'algorithme de niveau 0 à une copie de la grille.
 
     Paramètres :
     ------------
-    
+    grille : np.array
+    dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions : cf la synthèse du travail où les rôles de ces dictionnaires
+    sont détaillés + cf la fonction donnees_grille pour plus de détails
+
+    /!\ dico_est_trouve_0 ne sert finalement plus dans le niveau 0 (il a été retiré a posteriori pour améliorer les performances du programme)
+
     Sortie :
     --------
+    (grille_copie, d, dico_est_trouve, Bool, cout) : 
+    grille_copie --> une copie de la grille après l'application du niveau 0
+    d --> une copie de dico après l'application du niveau 0
+    dico_est_trouve --> une copie de dico_est_trouve après l'application du niveau 0
+    Bool --> True si la grille ne présente pas de contradiction et false sinon
+    cout --> le cout de l'application du niveau 0
     
     """
     cout = 0
@@ -450,16 +460,11 @@ def niveau_0(grille, dico, dico_est_trouve_0, dico_taille, Taille, dico_voisins,
                 
     return grille_copie, d, dico_est_trouve, True, cout #rajouter d pour plus tard
 
-#def niveau_n(n,grille:list,d:dict):
-#    """level n processing including deep research black box PST research and Von Marken  stochastic process"""                             
-#    grille_copie = deepcopy(grille)
-#    if n == 0:return niveau_0
-#    niveau_n(n-1,grille,d)
-
-
+# a supprimer !
 def cases_restantes(dico_est_trouve):
    """
-    
+    Donne le nombre de cases
+
     Paramètres :
     ------------
     
@@ -473,13 +478,19 @@ def cases_restantes(dico_est_trouve):
 
 def niveau_1(coord, grille, d, dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne):
     """
+    Applique le niveau 1 à la grille sur une case spécifique
     
     Paramètres :
     ------------
-    
+    coord : tuple, les coordonnées de la case où il faut appliquer le niveau 1
+    les autres paramètres sont les mêmes que pour le niveau 0
+
     Sortie :
     --------
-    
+    (dico, cout) :
+    dico --> le dictionnaire d mis à jour après le niveau 1 et la "réunion des univers parallèles"
+    cout --> le cout de l'application du niveau 1
+
     """
     i,j=coord
     L=d[coord]
@@ -518,13 +529,17 @@ def niveau_1(coord, grille, d, dico_est_trouve, dico_taille, Taille, dico_voisin
 
 def niveau_2(coord1,coord2, grille, d, dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne) :
     """
-    
+    Applique le niveau 2 à la grille 
+
     Paramètres :
     ------------
-    
+    coord1, coord2 : tuples, les deux cases où il faut appliquer le niveau 2
+
     Sortie :
     --------
-    
+    (dico, cout) :
+    dico --> le dictionnaire d mis à jour
+    cout --> le cout du niveau 2
     """
     (i,j),(k,l)=coord1,coord2
     L1=d[coord1]
@@ -550,7 +565,16 @@ def niveau_2(coord1,coord2, grille, d, dico_est_trouve, dico_taille, Taille, dic
     return concurrent_de_union_de_dicos_(possible, nb_ligne, nb_colonne), cout
 
 def get_pairs(ens:list)->list:
-    """copyright  @GabrielPatry"""
+    """Donne toutes les paires formées avec les élements de la liste ens
+    
+    Paramètres :
+    ------------
+    ens : list, liste des élements
+
+    Sortie :
+    --------
+    list, la liste des paires
+    """
     n = len(ens)
     list_pairs = []
     for i in range(n-1):
@@ -567,13 +591,8 @@ def get_pairs(ens:list)->list:
 
 def concurrent_de_union_de_dicos_(possible:list, nb_ligne:int, nb_colonne:int) :
     """
-    
-    Paramètres :
-    ------------
-    
-    Sortie :
-    --------
-    
+    Fait la même chose que la fonction union_de_dicos, mais cette fonction a été crée dans un moment de doutes où l'on ne savait pas si 
+    l'on arriverait à debugger union_de_dicos
     """
     n = len(possible)
     dico = {}
@@ -720,7 +739,6 @@ print("nombre de grilles non résolues :" + str(nb_false))
 print("nombre de grilles résolues :" + str(nb_true))
 print()
     
-#v10_b33_11.txt non résolue avec le niveau 1
 
 def test_niveaux_et_couts(path):
     """
@@ -782,13 +800,6 @@ def plus_court_chemin(grille,arbre,cout,cle_actuelle):
         new_grille, new_dico, new_dico_est_trouve, new_grille_valide, new_cout = niveau_0(grille, d_niveau_1, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
         #liste_etapes.append((new_grille,[1,case]))
         arbre[cle_actuelle+"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,cout+new_cout+cout_n1)
-
-   # list_pairs = get_pairs(liste_cases_vides)
-   # for i in range(len(list_pairs)):
-    #    (x,y), (z,t) = list_pairs[i] 
-     #   d_niveau_2, cout_n2 = niveau_2((x,y), (z,t), grille, d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-      #  new_grille, new_dico, new_dico_est_trouve, new_grille_valide, new_cout = niveau_0(grille, d_niveau_2, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-       # arbre[cle_actuelle+"2-"+str(x)+"-"+str(y)+"-"+str(z)+"-"+str(t)+"_"]=(new_grille,cout+new_cout+cout_n2)
 
     min_grille, min_cout, min_cle=min(arbre)
     del arbre[min_cle]
@@ -881,23 +892,6 @@ def max_info(d):
     return j,i,cle,d[cle][-1]
 
 
-
-#v10_b100_1.txt 1
-#v10_b100_10.txt 2
-#v10_b100_11.txt 2
-#v10_b100_12.txt 1
-#v10_b100_13.txt 1
-#v10_b100_14.txt 1
-
-
-#v10_b11_9.txt 1
-#v10_b12_1.txt 1
-#v10_b12_10.txt 1
-#v10_b12_11.txt 1
-#v10_b12_12.txt 1
-#v10_b12_13.txt 1
-#v10_b12_14.txt 1
-
 def plus_court_chemin_non_récursif(grille):
     """
     
@@ -980,13 +974,6 @@ def plus_court_chemin_non_récursif(grille):
         print(min_cle, nb_cases_vides, min_cout, len(arbre), (~np.array(sum(d.values(), []))).sum())
     affichage(min_grille)
     return arbre
-
-   # list_pairs = get_pairs(liste_cases_vides)
-   # for i in range(len(list_pairs)):
-    #    (x,y), (z,t) = list_pairs[i] 
-     #   d_niveau_2, cout_n2 = niveau_2((x,y), (z,t), grille, d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-      #  new_grille, new_dico, new_dico_est_trouve, new_grille_valide, new_cout = niveau_0(grille, d_niveau_2, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
-       # arbre[cle_actuelle+"2-"+str(x)+"-"+str(y)+"-"+str(z)+"-"+str(t)+"_"]=(new_grille,cout+new_cout+cout_n2)
 
 
 def plus_court_chemin_non_récursif_maximisation_informations(grille):
@@ -1116,3 +1103,25 @@ print("finito")
 input()
 
 # ------------------------------------------------------------------------------------------
+
+"""
+~~~~~ Informations complémentaires en vrac (utiles pour le debug) ~~~~~
+
+v10_b33_11.txt non résolue avec le niveau 1
+
+Liste non exhaustive de grilles avec le niveau qu'il faut appliquer pour la résoudre
+v10_b100_1.txt 1 -> il faut monter jusqu'au niveau 1 pour résoudre cette grille (mais pas besoin du niveau 2)
+v10_b100_10.txt 2
+v10_b100_11.txt 2
+v10_b100_12.txt 1
+v10_b100_13.txt 1
+v10_b100_14.txt 1
+v10_b11_9.txt 1
+v10_b12_1.txt 1
+v10_b12_10.txt 1
+v10_b12_11.txt 1
+v10_b12_12.txt 1
+v10_b12_13.txt 1
+v10_b12_14.txt 1
+
+"""
