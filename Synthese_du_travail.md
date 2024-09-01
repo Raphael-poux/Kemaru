@@ -50,6 +50,8 @@ Si la case de coordonnées *(i,j)* peut prendre N valeurs différentes, le nivea
 
 Ces deux exemples simples illustrent la puissance du niveau 1, qui consiste finalement à **faire des suppositions** et à **combiner les informations en faisant l'union des valeurs possibles des "univers parallèles**.
 
+**NB :** Quand on dit que l'on "propage des informations", cela signifie qu'on fait un niveau 0 (on applique les règles du jeu à la grille). Donc en réalité, le niveau 1 inclut automatiquement un niveau 0.
+
 ### Niveau 2
 Lorsque le niveau 1 ne parvient pas à résoudre la grille, on passe au niveau 2. Ici, au lieu de regarder toutes les possibilités pour une des cases, on regarde toutes les possibilités pour un **couple de cases** (ce qui fait vite beaucoup de possibilités). De la même manière, on propage les informations avec un niveau 0 après chaque hypothèse.
 
@@ -59,12 +61,56 @@ On pourrait continuer ainsi en supposant 3, 4 ... N cases si le niveau 2 ne suff
 *NB : certaines des grilles testées étaient loin d'être faciles (elles étaient même très difficiles), ce qui nous permet de penser que le niveau 2 suffit pour toutes les grilles qui existent*
 
 ## Plus court chemin 
-TODO : détailler la recherche du plus court chemin
+La recherche du plus court chemin de résolution est utile pour donner des indices pertinents à l'utilisateur. On peut en effet se dire qu'au lieu de dévoiler une case au hasard en guise d'indice, il est plus efficace de diriger l'utilisateur vers une étape de raisonnement clef (par exemple en montrant sur quelle case réfléchir). On peut obtenir cela en partant du principe que les étapes du plus court chemin de résolution sont aussi les plus faciles à faire pour un humain. 
+
+### Dijkstra, ou presque ...
+Pour trouver le plus court chemin, on calcule le "coût" (détails ci-dessous) de chaque étape (niveau 0, niveau 1 sur telle case ...) pour construire le graphe du jeu. Pour la première étape, l'algorithme prend la grille initiale et essaie tous les coups possibles (niveau 0, niveau 1 sur la case (0,0), niveau 1 sur la case (1,0) ... ), en gardant en mémoire le résulat de chaque coup. Une fois tous les coups possibles appliquées, l'algorithme sélectionne le coup dont le coût est le plus faible, puis il refait pareil à partir de la grille initiale à laquelle on a appliqué le coup. 
+
+> *Exemple :* Supposons que le coup de plus faible coût soit un niveau 1 sur la case (1,1), que ce coup coûte 100, et que la grille résultant de ce coup s'appelle A. Alors le programme applique ensuite à A tous les coups possibles, en gardant en mémoire les résultats de ces coups ainsi que le coût résultant. Dans ce cas, si on applique à A un niveau 1 de coût 50, le coût résultant sera 100+50 (supposons aussi que ce soit le coup  de plus faible coût). 
+>
+> A la prochaine itération, si la grille n'est pas résolue, il faudra repartir de la grille dont le coup est le plus faible. Peut-être que celle-ci sera A + le niveau 1 de coût 50, mais peut-être que cette grille sera celle résultant d'un autre coup que A (disons un coup B de coût 120). 
+
+Cet algorithme nous assure de trouver le chemin de résolution minimisant le coût.
+
+### Le coût
+Dans notre algorithme, le coût est défini assez simplement : dès que l'on se sert d'une case pour éliminer une valeur possible dans les cases voisines, on augmente le coût de 1 (cela revient à compter les comparaisons que l'on fait). 
+
+Pour le niveau 1, on choisit de rajouter un coût supplémentaire (car un niveau 1 est plus difficile à faire de tête) pénalisant les cases où il y a beaucoup de valeurs possibles. Il est en effet plus logique pour un humain de regarder une case où il hésite entre deux valeurs plutôt qu'une case où il hésite entre 5 valeurs. 
+
+De même, pour des raisons de rapidité, nous avons choisi de faire un niveau 2 seulement si les niveaux 0 et 1 ne sont pas suffisants. Il est en effet très long de calculer tous les niveaux 2 possibles, et il est très difficile pour un humain de réfléchir à un niveau 2. Donc autant rediriger les joueurs vers les niveaux 2 le moins souvent possible.
 
 ## Implémentation
-TODO : illustrer les explications avec des bouts de code
+### Les dictionnaires/array utiles
+Pour repésenter le jeu, nous utilisons plusieurs dictionnaires et array numpy car certaines représentations sont plus utiles que d'autres selon les situations.
 
+**La grille** : c'est un array tel que `grille[i][j] = [valeur, n° de la cage]`, et où i, j sont les coordonnées spatiales de la case.
 
+**Le dictionnaire d/dico** : dans le solveur, tous les dictionnaires qui s'appellent d ou dico <small>(il faut reconnaître que le nom n'est pas terrible)</small> désignent un objet d'une forme bien particulière : 
+```python
+d[i][j] = [True, True, False, False, True] #exemple 1 
+d[i][j] = [True, False, False] #exemple 2
+```
+Dans l'exemple 1, la case (i,j) est dans une cage de taille 5 et il est possible de mettre un 1, un 2 ou un 5. 
+
+Dans l'exemple 2, la case (i,j) est dans une cage de taille 3 et il est possible d'y mettre un 1 uniquement (donc la case contient un 1).
+
+**TODO : la suite !!**
+
+**Dico_est_trouve**
+
+**Dico_taille**
+
+**Taille**
+
+**Dico_voisins**
+
+## Implémentations des différents niveaux
+
+## Le plus court chemin
+
+## Quelques difficultés
+
+## Améliorations du plus court chemin
 # Partie interface
 Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame.
 
