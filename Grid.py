@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 
-
+# On définit les paramètres d'affichage de la grille dont la taille est fixe, mais qu'on pourrait adapter à l'écran
 screen_info = pygame.display.Info()
 width = screen_info.current_w
 height = screen_info.current_h
@@ -11,6 +11,8 @@ x_default = int(width - grid_height)/2
 cell_color = (220, 220, 220)
 
 
+# On crée la classe cell qui représente une case de la grille définie par sa valeur, son groupe et ses coordonnées
+# On introduit également certains booléens qui seront utiles pour l'affichage ou pour pouvoir changer la valeur de la case
 # +
 class cell:
     def __init__(self, x, y, i, j, width, height, value_and_group):
@@ -40,6 +42,10 @@ class cell:
 
 
     def cell_display(self, screen, grid_dico, ai):
+        """
+        L'affichage diffère selon le rôle de la case dans la résolution (useful, found), si elle a une valeur ou si on clique dessus
+        """
+        
         if self.clicked_on and not ai:
             pygame.draw.rect(screen, self.color, self.surface)
         if self.useful:
@@ -55,6 +61,9 @@ class cell:
     
 
     def cell_is_clicked_on(self, event, cell_last_clicked_on, grid):
+        """
+        On note quelle sur quelle case l'utilisateur clique
+        """"
         if self.surface.collidepoint(event.pos):
             cell_last_clicked_on.cell_change(self, grid)
         
@@ -120,7 +129,7 @@ def grid_and_groups_creation(file, list_x, list_y):
 
 def grid_display(grids, screen, grid_dico, ai):
     """
-    Affiche la grille 
+    Affiche la grille en affichant chaque case
     """
     for grid in grids:
         for row in grid:
@@ -129,6 +138,9 @@ def grid_display(grids, screen, grid_dico, ai):
 
 
 def groups_display(groups, screen, cell_width, cell_height, list_x = [x_default], list_y = [y_default]):
+    """
+    Affiche les groupes qui composent la grille
+    """
     for i in range(len(list_x)):
         x = list_x[i]
         y = list_y[i]
@@ -153,7 +165,8 @@ def groups_display(groups, screen, cell_width, cell_height, list_x = [x_default]
                 pygame.draw.line(screen, (0, 0, 0), (xg, yh), (xg, yb), 2)
                 pygame.draw.line(screen, (0, 0, 0), (xd, yh), (xd, yb), 2)
             
-    
+# On définit une classe pour savoir quelle case l'utilisateur veut modifier. Il peut choisir à la souris ou au clavier
+
 class cell_last_clicked_on:
     def __init__(self):
         self.current_pos = (0, 0)
@@ -179,6 +192,9 @@ class cell_last_clicked_on:
 
         
     def new_number(self, grids, event, grille, grid_dico_state, grid_dico):
+        """
+        Cette fonction sert soit à attribuer une valeur à une case soit à supprimer une valeur qu'elle pourrait avoir
+        """
         grid = grids[0]
         if not self.current_pos == 0:
             i = self.current_pos[0]
@@ -256,10 +272,16 @@ class cell_last_clicked_on:
             mise_a_jour_cellules2(grids, grid_dico, grille)
 
 def positions_true(bool_list):
+    """
+    Transforme une liste de booléens en string contenant les positions des Trues
+    """
     positions = [str(index  + 1) for index, value in enumerate(bool_list) if value]
     return ','.join(positions)
 
 def mise_a_jour_cellules(grids, steps, grille):
+    """
+    Met à jour l'affichage de la grille pour qu'il corresponde à l'étape suivante dans la résolution
+    """
     for grid in grids:
         cellules = steps[0]
         dico = steps[1]
@@ -282,6 +304,9 @@ def mise_a_jour_cellules(grids, steps, grille):
         
 
 def mise_a_jour_cellules2(grids, dico, grille):
+    """
+    Met à jour la grille pour qu'elle affiche les informations contenus dans le dictionnaires
+    """
     for grid in grids:
         for i in range(len(grid)):
             for j in range(len(grid[0])):
