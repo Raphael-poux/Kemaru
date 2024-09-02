@@ -1,6 +1,6 @@
 import pygame
 
-
+# On définit une machine à états afin de pourvoir connaître les paramètres de jeu et la fenêtre à afficher
 # +
 class statemachine:
     def __init__(self, initial_state):

@@ -1,6 +1,8 @@
 import pygame 
 import sys
 
+# On définit des paramètres utiles à l'affichage des boutons présents dans l'interface 
+
 black = (0, 0, 0)
 white = (255, 255, 255)
 screen_info = pygame.display.Info()
@@ -14,6 +16,7 @@ y_middle = int((height - button_height)/2)
 gap = int(3/2*button_height)
 
 
+# On définit une classe bouton afin de pourvoir mieux les travailler et gérer les moments d'affichage
 # +
 class button:
     def __init__(self, text, rect, main_state, *entry_states, secondary_state = False, text_police = police, text_color = black, 

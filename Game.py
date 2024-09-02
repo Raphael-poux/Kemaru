@@ -1,14 +1,12 @@
-
 import os
 import random
 import numpy as np
 
 instances = "./instances"
-# List to store the full paths of files
 
 files = []
     
-# Traverse files in the directory
+# Parcours des grilles de instances
 for filename in os.listdir(instances):
     full_path = os.path.join(instances, filename)
     if os.path.isfile(full_path):
@@ -18,8 +16,8 @@ for filename in os.listdir(instances):
 # +
 def read_random_file(filepath = None):
     """
-    Choisit un fichier au hazard un fichier dans la liste des fichiers contenant les grilles et transforme la représentation de celle-ci
-
+    Choisit un fichier au hazard dans instances et retranscrit la grille qu'il contient
+    A chaque ligne du fichier, il y a les coordonnées de la case, sob groupe et la valeur éventuelle qu'elle contient
     Paramètres : Aucun
     
     Sortie :
@@ -51,6 +49,7 @@ def read_random_file(filepath = None):
             grid[(row, col)] = (value, group)
     h, w = (max(grid))
     grid = [[grid[(i, j)] for j in range(w + 1)] for i in range(h + 1)]
+    # On souhaite pour l'affichage que le plus grand côté de la grille soit vertical
     if h > w:
         grid = [[grid[j][i] for j in range(h + 1)] for i in range(w + 1)]
     
