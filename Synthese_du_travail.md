@@ -80,6 +80,15 @@ Pour le niveau 1, on choisit de rajouter un coût supplémentaire (car un niveau
 De même, pour des raisons de rapidité, nous avons choisi de faire un niveau 2 seulement si les niveaux 0 et 1 ne sont pas suffisants. Il est en effet très long de calculer tous les niveaux 2 possibles, et il est très difficile pour un humain de réfléchir à un niveau 2. Donc autant rediriger les joueurs vers les niveaux 2 le moins souvent possible.
 
 ## Implémentation
+### Encodage d'une grille dans un fichier .txt
+Les grilles du jeu sont stockées dans des fichiers au format `.txt`. Ces grilles, données par l'encadrant, sont disponibles dans le fichier `instances.zip`. Il y en a 23 580 (de quoi s'amuser longtemps) et les difficultés sont très variables. 
+
+Les fichiers sont construits de la façon suivante : 
+- Il y a autant de lignes que de cases dans la grille 
+- Chaque ligne contient 3 ou 4 chiffres
+- Les deux premiers sont les coordonnées de la case
+- Le troisième désigne le numéro de la cage à laquelle appartient la case 
+- Et l'éventuel dernier désigne la valeur de la case si celle-ci est non vide
 ### Les dictionnaires/array utiles
 Pour repésenter le jeu, nous utilisons plusieurs dictionnaires et array numpy car certaines représentations sont plus utiles que d'autres selon les situations.
 
@@ -104,13 +113,97 @@ Dans l'exemple 2, la case (i,j) est dans une cage de taille 3 et il est possible
 
 **Dico_voisins**
 
-## Implémentations des différents niveaux
+### Niveau 0
+C'est le niveau le plus imortant puisque celui-ci va être utilisé très souvent. Dans l'implémentation, on utilise un `set`nommé `To_treat` qui fait office de pile contenant l'ensemble des cases à analyser. On l'initialise en mettant toutes les cases de la grille :
+```python
+To_treat = set([(i, j) for i in range(nb_ligne) for j in range(nb_colonne)]) 
+```
+On va ensuite dépiler `To_treat`pour mettre à jour le dictionnaire `d`. Pour cela, on propage la valeur de la case aux voisins (si la case est non vide) : 
+```python
+value, cage = grille_copie[i][j]
+for v in dico_voisins[(i, j)] :
+    if value <= dico_taille[v] :
+        # augmentation du coût en cas de modification de d
+        if d[v][value-1]:
+            cout+=1
+        # mise à jour de d : il ne peut pas y avoir deux chiffres identiques à côté ! Le "-1" vient juste d'un décalage des indices.
+        d[v][value - 1] = False
+        # on ajoute les voisins et les cages dans la pile
+        if grille_copie[v[0]][v[1]][0] == -1:
+            To_treat.add(v)
+            To_treat.add((grille_copie[v[0]][v[1]][1],))
+```
+Il faut aussi mettre à jour les cases dans la même cage que la case dépilée :
+```python
+# Il ne peut pas y avoir deux fois la même valeur dans une même cage (cage_positions contient les coordonnées des cases d'une même cage)
+for v in cages_positions[grille_copie[i][j][1]]:
+    if v != element :
+        if d[v][value-1]:
+            cout+=1
+        d[v][value - 1] = False
+        if grille_copie[v[0]][v[1]][0] == -1:
+            To_treat.add(v)
+```
+On constate que la pile contient deux types d'éléments : des couples (i,j) pour désigner les cases et des tuples à un élément (n° de cage) pour désigner des cages. Mettre des cages dans la pile sert à raisonner sur l'ensemble des cages, car il peut arriver qu'on devine où se trouve une valeur si jamais on ne peut la mettre qu'à un seul endroit dans la cage :
+```python
+# une des valeurs ne peut aller qu'à un endroit de la cage, donc elle y va forcément !
+if len(cases_possibles) == 1 :
+    seule_case_possible = cases_possibles[0]
+    d[seule_case_possible ] = [False]*len(d[seule_case_possible])
+    d[seule_case_possible ][i - 1] = True
+    if grille_copie[seule_case_possible[0]][seule_case_possible[1]][0] == -1:
+        dico_est_trouve[seule_case_possible] = True
+        To_treat.add(seule_case_possible)
+``` 
+### Niveaux 1 et 2
+Les niveaux 1 et 2 ne sont en fait pas bien compliqués : on applique simplement un niveau 0 à une copie de la grille, à laquelle on remplit une des cases par une valeur possible. 
+```python
+# on suppose que la grille contient la valeur e à la coordonnée (i, j). Il y a encore un +1 pour des raisons d'indiçage.
+grille_copie[i][j][0]=e+1
+```
+### Le plus court chemin
+Les étapes clefs de la recherche du plus court chemin sont : l'essai de tous les niveaux 1 possibles (on parlera des niveaux 2 par la suite) sur la grille, et la mise à jour de l'arbre des possibilités après chaque essai. On fait cela dans les lignes suivantes (le code est volontairement simplifié par rapport au code du solveur par soucis de clarté) :
+```python 
+for case in liste_cases_vides :
+    i,j=case
+    # niveau 1 sur une case vide
+    d_niveau_1, cout_n1 = niveau_1(case, current_grille, d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+    # on fait automatiquement un niveau 0 pour propager les informations du niveau 1
+    new_grille, new_dico, new_dico_est_trouve, new_grille_valide, new_cout = niveau_0(current_grille, d_niveau_1, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne)
+    # mise à jour de l'arbre des possibilités
+    arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,current_cout+new_cout+cout_n1, (new_dico, new_dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions))
+```
+En ce qui concerne l'arbre des possibilités, il s'agit d'un dictionnaire dont les clefs sont de la forme suivante : 
+`0_1-5-2_2-2-3-1-4` si l'on a appliqué un niveau 0, puis un niveau 1 sur la case (5,2), puis un niveau 2 sur les cases (2,3) et (1,4) par exemple. 
 
-## Le plus court chemin
-
+On récupère ensuite le chemin le moins cher dans l'arbre et on actualise la grille avant de recommencer (on continue le programme tant qu'on n'a pas résolu la grille) :
+```python
+# on prend les infos du chemin le moins cher
+min_grille, min_cout, min_cle = min(arbre) 
+d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
+# on met à jour le coût et la grille
+current_cout = min_cout
+current_grille = min_grille
+historique = min_cle
+# on supprime enfin la branche de coût minimal pour ne pas tomber dans une boucle infinie
+del arbre[min_cle]
+```
 ## Quelques difficultés
+Au départ, notre algorithme de plus court chemin était légèrement différent de celui dans le solveur, et il présentait un inconvénient majeur : le temps d'exécution. En effet, pour les grilles les plus compliquées, même après plusieurs heures, le plus court chemin n'était toujours pas trouvé. Cela s'explique notamment par le fait que minimiser le coût va à l'encontre de progresser rapidement dans la grille. En effet, les coups de plus faible coût sont ceux qui font peu de comparaison et donc peu de déductions.
+>*Exemple :* si on applique un niveau 1 sur une case perdue au milieu de cases vides, on n'apprendra probablement pas grand chose, voire rien (on ne va pas éliminer beaucoup de valeurs) ... donc le coût sera proche de 0. Or, l'algorithme favorise ce genre de coups.
 
+Cela fait que l'algorithme va essayer tous les coups que l'on pourrait qualifier de "pas chers mais inutiles", en faisant augmenter la taille de l'arbre des possibilités sans progresser dans la résolution. 
+
+Une des premières solutions que nous avons mise en place est la modification de la variable optimisée par l'algorithme, en ne choisissant pas le chemin le moins coûteux, mais celui qui **maximise la quantité d'informations apprises**. On obtient la **quantité d'informations** que l'on a sur une grille en comptant le nombre de `False` dans le dictionnaire d (ie : on compte le nombre de possibilités éliminées). Cela se fait avec la syntaxe suivante (pas hyper claire mais a le mérite de faire ça en une ligne) : 
+```python
+information = (~np.array(sum(d.values(), []))).sum()
+```
+En employant un algorithme très similaire à Dijkstra, mais qui maximise la quantité de nouvelles informations à chaque étape, on arrive à trouver un chemin de résolution efficace pour n'importe quelle grille (en un temps raisonnable).
+
+Nous verrons dans la prochaine partie que nous avons finalement réussi à améliorer le premier algorithme pour le rendre bien plus rapide. Cela nous permet de trouver le plus court chemin (au sens du coût) en un temps raisonnable, ce qui est l'un des objectifs du projet.
 ## Améliorations du plus court chemin
+### TODO : parler du hash et des autres améliorations faites avec N. Stott
+
 # Partie interface
 Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame.
 
