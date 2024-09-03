@@ -6,6 +6,9 @@ import Interface
 import Grid
 import Game
 import sol_int
+
+# on initialise les classes et les paramètres nécessaires
+
 pygame.display.set_caption("Kemaru")
 screen_info = pygame.display.Info()
 width = screen_info.current_w
@@ -39,6 +42,7 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             game_state.reset_counter()
+            # On actualise la state_machine en fonction des bouton sur lesquels l'utilisateur clique
             for button in Buttons:
                 game_state.button_is_clicked_on(event, button)
             if game_state.transition_state:
@@ -54,7 +58,7 @@ while running:
                     grille = sol_int.transformation(filepath)
                     grid_dico = sol_int.lancement_interface(grille, return_dico = True)
                     if game_state.ai:
-                        #instruction
+                        # Si l'utilisateur choisit le mode ai on calcule les différentes étapes de résolutions
                         instruction_string = sol_int.plus_court_chemin_non_récursif_maximisation_informations(grille)
                         instructions = sol_int.string_conversion(instruction_string)
                         cpt_instruction_max = len(instructions)
@@ -65,19 +69,23 @@ while running:
                         cpt_steps_max = len(steps)
                         game_state.grid_dico = not game_state.grid_dico
                         Grid.mise_a_jour_cellules2(grids, grid_dico, grille)
-                        print(instructions)
+            # On regarde si l'utilisateur a cliqué sur une cellule
             if game_state.current_state == 'game' and not game_state.ai:
                 for row in grids[0]:
                     for cell in row:
                         cell.cell_is_clicked_on(event, cell_last_clicked_on, grids[0])
         if event.type == pygame.KEYDOWN and game_state.current_state == 'game':
+            # On met à jour l'affichage en fonction des actions de l'utilisateur
             if not game_state.ai:
+                # On s'intéresse à la case sur laquelle il clique et à la valeur qu'il veut lui enlever ou lui attribuer
                 cell_last_clicked_on.cell_is_keydown_on(event, grids[0], imax, jmax)
                 cell_last_clicked_on.new_number(grids, event, grille, game_state.grid_dico, grid_dico)
             if event.key == pygame.K_SPACE:
+                # On offre la possibilité à l'utilisateur d'afficher la grille avec pour chaque case toutes les valeurs possibles
                 game_state.grid_dico = not game_state.grid_dico
                 Grid.mise_a_jour_cellules2(grids, grid_dico, grille)
             if event.key == pygame.K_s and game_state.ai:
+                # On affiche l'avancée de la résolution en alternant les niveaux 0 et les niveaux 1
                 if game_state.niveau_0:
                     if cpt_steps < cpt_steps_max :
                         grid_dico = steps[cpt_steps][1]
@@ -129,12 +137,12 @@ while running:
                     
 
 
-                                                          
+    # On affiche les boutons                                                          
     for button in Buttons:
         button.button_display(game_state.current_state, screen)
         button.mouse_over_it(x_mouse, y_mouse)
 
-
+    # On affiche la grille
     if game_state.current_state == 'game':
         Grid.grid_display(grids, screen, game_state.grid_dico, game_state.ai)
         Grid.groups_display(groups, screen, cell_width, cell_height, list_x, list_y)      
