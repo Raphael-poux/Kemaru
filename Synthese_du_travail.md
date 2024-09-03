@@ -224,7 +224,7 @@ def nb_h(dico):
 - On ne fait un niveau 2 **que lorsque cela est vraiment nécessaire**. Les niveaux 2 sont très coûteux en temps de calcul et sont très difficiles à faire pour un humain, donc on les évite le plus possible. Concrètement, la variable `did_niveau_1` est mise à `True` si au moins un des niveaux 1 donne des informations supplémentaires sur la grille. On teste donc les niveaux 2 seulement si `did_niveau_1` est toujours à `False` après avoir testé tous les niveaux 1 possibles sur la grille.
 
 # Partie interface
-Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame.
+Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame. Nous avons choisi pygame essentiellement car au début du projet nous n'avions pas encore commencé les cours de HTML/Css/javascript.
 
 ## Interface joueur
 Deux modes de jeu distincts ont étés implémentés. Le premier permet a joueur de résoudre la grille par lui-même. Il peut pour s'aider afficher les possibilités dans chaque case et les éliminer manuellement.
