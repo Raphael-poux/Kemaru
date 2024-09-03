@@ -99,19 +99,27 @@ Pour repésenter le jeu, nous utilisons plusieurs dictionnaires et array numpy c
 d[i][j] = [True, True, False, False, True] #exemple 1 
 d[i][j] = [True, False, False] #exemple 2
 ```
-Dans l'exemple 1, la case (i,j) est dans une cage de taille 5 et il est possible de mettre un 1, un 2 ou un 5. 
+Dans l'exemple 1, la case (i,j) est dans une cage de taille 5 et il est possible d'y mettre un 1, un 2 ou un 5. 
 
 Dans l'exemple 2, la case (i,j) est dans une cage de taille 3 et il est possible d'y mettre un 1 uniquement (donc la case contient un 1).
 
-**TODO : la suite !!**
+**Dico_est_trouve :** Permet de savoir si la valeur dans une case est connue.
+```python
+dico_est_trouve[(i,j)] == True # si la case est connue
+dico_est_trouve[(i,j)] == False # sinon
+```
+Ce dictionnaire n'est en fait pas très pertinent (on a la même information dans la grille), c'est pourquoi on a essayé de s'en servir le moins possible (cela enlève des copies de dictionnaires et améliore le temps de calcul).
 
-**Dico_est_trouve**
+**Dico_taille** est construit tel que `dico_taille[(i,j)]` donne la taille de la cage dans laquelle se trouve la case (i,j)
 
-**Dico_taille**
+**Taille** donne également la taille des cages : `Taille[i]` donne la taille de la cage numéro `i`.
 
-**Taille**
+**Dico_voisins** est un dictionnaire qui donne la liste des voisins d'une certaine cage.
 
-**Dico_voisins**
+**Cages_positions** est un dictionnaire qui donne la liste des cases dans une certaine cage. 
+```python
+cages_positions[i] == # la liste des cases dans la cage n°i
+```
 
 ### Niveau 0
 C'est le niveau le plus imortant puisque celui-ci va être utilisé très souvent. Dans l'implémentation, on utilise un `set`nommé `To_treat` qui fait office de pile contenant l'ensemble des cases à analyser. On l'initialise en mettant toutes les cases de la grille :
