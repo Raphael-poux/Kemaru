@@ -5,6 +5,10 @@ from copy import deepcopy
 import os
 import copy
 
+# On reprend les mêmes fonctions que pour solver, mais on les modifie légèrement pour pouvoir les utiliser dans l'interface
+# On ajoute aussi en sortie des fonctions niveau 0 et niveau 1 une manière de suivre toutes les étapes de résolution
+
+
 def nb_cage(grille):
     """""renvoie le nombre de cages"""
     nb_ligne = len(grille)
