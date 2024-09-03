@@ -1,2 +1,0 @@
-File format:
-There are N lines of texts. Each line describes a cell and has 3 or 4 numbers. The first and second number are the coordinate of the cell. The third number is the number of the cage containing the cell. The optional fourth number is the number written in the cell.
