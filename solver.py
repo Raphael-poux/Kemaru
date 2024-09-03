@@ -604,13 +604,22 @@ def concurrent_de_union_de_dicos_(possible:list, nb_ligne:int, nb_colonne:int) :
     
 def union(liste) :
     """
-    
+    Prend un liste de listes contenant des True et des False et fait l'union
+
     Paramètres :
     ------------
+    liste : une liste de liste
     
     Sortie :
     --------
-    
+    list
+
+    Exemple :
+    ---------
+    union([[True, False, False, False],
+             [False, True, False, False], 
+             [True, False, False, True]])
+    renvoie la liste : [True, True, False, True]
     """
     n = len(liste[0])
     liste_union = [False]*n
@@ -620,18 +629,11 @@ def union(liste) :
                 liste_union[i] = True
                 break
     return liste_union
-    
-    
             
 def union_de_dicos(possible:list, nb_ligne:int, nb_colonnes:int)->dict:
     """
-    
-    Paramètres :
-    ------------
-    
-    Sortie :
-    --------
-    
+    Permet de faire l'union des dictionnaires d pour assembler les différents "univers parralèlles" explorés dans les niveaux 1 et 2.
+    Cf la note de synthèse pour des explications plus détaillées.
     """
     if len(possible):
         A_union = [[[possible[0][(i,j)][k] for k in range(len(possible[0][(i,j)]))]for j in range(nb_colonnes) ]for i in range(nb_ligne) ]
@@ -644,13 +646,20 @@ def union_de_dicos(possible:list, nb_ligne:int, nb_colonnes:int)->dict:
             
 def main(path) :
     """
-    
+    Permet de résoudre une grille en donnant le niveau maximum à utiliser pour la résolution.
+
     Paramètres :
     ------------
+    path : string, chemin d'accès vers une grille
     
     Sortie :
     --------
-    
+    (grille remplie, niveau maximal utilisé)
+    ou
+    -1 si la grille est non valide
+    ou
+    grille : la grille non remplie si on ne peut la résoudre avec des niveaux 0, 1 et 2
+
     """
     #path = "exemples_grilles/instances/v10_b100_1.txt"
     grille = np.array(transformation(path))
@@ -661,7 +670,7 @@ def main(path) :
     grille, dico, dico_est_trouve, grille_valide, cout, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne = premier_niveau_0
     if not grille_valide :
         print("grille non valide")
-        return 1
+        return -1
     liste_cases_vides = get_missing_values(grille, dico_taille)
     if len(liste_cases_vides) == 0 :
         return grille, niveau_max_utilise
@@ -743,13 +752,7 @@ print()
 
 def test_niveaux_et_couts(path):
     """
-    
-    Paramètres :
-    ------------
-    
-    Sortie :
-    --------
-    
+    une fonction du debug sans importance
     """
     grille = np.array(transformation(path))
     premier_niveau_0 = lancement(grille)
@@ -762,22 +765,16 @@ def test_niveaux_et_couts(path):
     
 
 def plus_court_chemin(grille,arbre,cout,cle_actuelle):
-    """
-    
-    Paramètres :
-    ------------
-    
-    Sortie :
-    --------
-    
-    """
     """ prend une grille en entrée et calcule le plus court chemin de résolution
     grille : la configuration initiale
     arbre : dico qui contient l'abre du jeu. Les clefs sont de la forme 
     0_1-5-3_1-6-4 si le chemin est un niveau 0 puis un niveau 1 sur la case (5,3)...
     les élements sont des tuples qui contiennent la grille et le cout correspondant
     cout : le cout qui nous a permi d'obtenir la conf initiale
-    liste_etapes : liste des étapes faites pour arriver à cette configuration """
+    liste_etapes : liste des étapes faites pour arriver à cette configuration 
+    
+    /!\ fonction inutilisable car le nombre d'appels récursifs dépassent souvent la limite !
+    """
     nb_cases_vides = sum(sum(grille[:,:,0] == -1))
     print(cle_actuelle, nb_cases_vides)
     if nb_cases_vides == 0 :
@@ -812,13 +809,15 @@ def plus_court_chemin(grille,arbre,cout,cle_actuelle):
 
 def données_grille(grille):
     """
-    
+    Donne les dictionnaires utiles pour utiliser les niveaux 0, 1 et 2
     Paramètres :
     ------------
-    
+    grille : np.array
+
     Sortie :
     --------
-    
+    (d, dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne) : les paramètres à utiliser pour les autres 
+    fonctions (cf la note de synthèse pour le fonctionnement de chaque dictionnaire)
     """
     grille_copie = deepcopy(grille)
     nb_colonne = len(grille[0])
@@ -852,56 +851,55 @@ def données_grille(grille):
                 d[(i, j)][valeur - 1] = True
     return d, dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne
 
-def min(d):
+def min(arbre_jeu):
     """
-    
+    donne le chemin de coût minimal (dans la recherche du plus court chemin)
+
     Paramètres :
     ------------
-    
+    arbre_jeu : l'arbre des possibilités du jeu
+
     Sortie :
     --------
-    
+    (grille de plus faible cout, plus faible cout, clef pour y accéder dans l'arbre des possibilités)
+
     """
     i=None
     j=None
     cle=None
-    for e in d:
-        if i==None or d[e][1]<i:
-            i=d[e][1]
-            j=d[e][0]
+    for e in arbre_jeu:
+        if i==None or arbre_jeu[e][1]<i:
+            i=arbre_jeu[e][1]
+            j=arbre_jeu[e][0]
             cle=e
     return j,i,cle
             
-def max_info(d):
+def max_info(arbre_jeu):
     """
-    
-    Paramètres :
-    ------------
-    
-    Sortie :
-    --------
-    
+    Même principe que 'min()' mais maximise la quantité d'informations.
     """
     i=None
     j=None
     cle=None
-    for e in d:
-        if i==None or d[e][1]>i:
-            i=d[e][1]
-            j=d[e][0]
+    for e in arbre_jeu:
+        if i==None or arbre_jeu[e][1]>i:
+            i=arbre_jeu[e][1]
+            j=arbre_jeu[e][0]
             cle=e
-    return j,i,cle,d[cle][-1]
+    return j,i,cle,arbre_jeu[cle][-1]
 
 
 def plus_court_chemin_non_récursif(grille):
     """
-    
+    Donne le plus court chemin de résolution
+
     Paramètres :
     ------------
-    
+    grille : np.array
+
     Sortie :
     --------
-    
+    arbre : arbre contenant le plus court chemin de résolution
     """
     cout=0
     historique="0_"
@@ -964,7 +962,7 @@ def plus_court_chemin_non_récursif(grille):
                     hashes = {}
                     arbre[historique +"2-"+str(i1)+"-"+str(j1)+"-"+str(i2)+"-"+str(j2)+"_"]=(new_grille,new_cout, (new_dico, new_dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions))
         
-        min_grille, min_cout, min_cle=min(arbre)
+        min_grille, min_cout, min_cle = min(arbre)
         d, dico_est_trouve_0, dico_taille, Taille, dico_voisins, cages_positions = arbre[min_cle][2]
         current_cout = min_cout
         current_grille = min_grille
@@ -981,15 +979,7 @@ def plus_court_chemin_non_récursif(grille):
 
 
 def plus_court_chemin_non_récursif_maximisation_informations(grille):
-    """
-    
-    Paramètres :
-    ------------
-    
-    Sortie :
-    --------
-    
-    """
+
     """reprend le même algo que dessus mais cette fois, on veut maximiser la quantité d'informations"""
     cout=0
     historique=""
@@ -1034,13 +1024,16 @@ def plus_court_chemin_non_récursif_maximisation_informations(grille):
 
 def affichage_etapes(liste_etape_str, grille):
     """
-    
+    fonction de debug pour afficher l'effet de chaque étape sur une grille
+
     Paramètres :
     ------------
-    
+    liste_etape : str, un string encodant la liste des étapes à appliquer (cf la note de synthèse pour plus de détails)
+    grille : une grille valide
+
     Sortie :
-    --------
-    
+    -------
+    rien
     """
     liste_etape = liste_etape_str.split("_")
     dico, dico_est_trouve, cages_valeurs, dico_taille, Taille, dico_voisins, cages_positions, nb_ligne, nb_colonne=données_grille(grille)
