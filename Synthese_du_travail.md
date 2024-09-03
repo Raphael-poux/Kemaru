@@ -202,7 +202,26 @@ En employant un algorithme très similaire à Dijkstra, mais qui maximise la qua
 
 Nous verrons dans la prochaine partie que nous avons finalement réussi à améliorer le premier algorithme pour le rendre bien plus rapide. Cela nous permet de trouver le plus court chemin (au sens du coût) en un temps raisonnable, ce qui est l'un des objectifs du projet.
 ## Améliorations du plus court chemin
-### TODO : parler du hash et des autres améliorations faites avec N. Stott
+Après réflexion, nous avons pu faire fonctionner le premier algorithme de recherche du plus court chemin en un temps raisonnable (il met maximum une ou deux minutes pour les grilles vraiment difficiles, et quelques secondes sur la plupart des grilles). Pour cela, nous avons fait plusieurs modifications :
+- On n'ajoute dans l'arbre que **les coups qui font augmenter la quantité d'informations** sur la grille. En effet, certains coups faisaient grandir inutilement l'arbre en ne donnant aucune information supplémentaire (il s'agit des niveaux 1 inutiles).
+- On utilise une **fonction de hachage** pour vérifier s'il n'y a pas deux grilles identiques dans l'arbre des possibilités. En effet, il se peut que deux chemins différents mènent à la même grille (donc il suffit de ne garder qu'un seul des deux chemins). Pour vérifier si deux grilles sont identiques, on compare leurs dictionnaires `d` (qui contient plus d'informations que les grilles elles-mêmes puisqu'il nous informe aussi sur les valeurs éliminées de chaque case). Or, comparer de gros dictionnaires est difficile, c'est pourquoi on se contente de comparer leur hash : 
+```python
+# on ne garde que les grilles où l'on progresse et qui n'existent pas déjà
+if information_apres > information_avant and hash not in hashes.keys():
+    did_niveau_1 = True
+    hashes[hash] = new_dico
+    arbre[historique +"1-"+str(i)+"-"+str(j)+"_"]=(new_grille,current_cout+new_cout+cout_n1, (new_dico, new_dico_est_trouve, dico_taille, Taille, dico_voisins, cages_positions))
+```
+```python
+# fonction de hachage faite maison, avec des conseils donnés par l'encadrant : utiliser l'opérateur << et faire des opérations avec des nombres premiers assez grands
+def nb_h(dico):
+    h = 0
+    for k,v in dico.items():
+        a = 887*k[0] + 991 * k[1] + 643*sum(v[i] * (1 << i) for i in range(len(v)))
+        h += a
+    return h
+```
+- On ne fait un niveau 2 **que lorsque cela est vraiment nécessaire**. Les niveaux 2 sont très coûteux en temps de calcul et sont très difficiles à faire pour un humain, donc on les évite le plus possible. Concrètement, la variable `did_niveau_1` est mise à `True` si au moins un des niveaux 1 donne des informations supplémentaires sur la grille. On teste donc les niveaux 2 seulement si `did_niveau_1` est toujours à `False` après avoir testé tous les niveaux 1 possibles sur la grille.
 
 # Partie interface
 Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame.
