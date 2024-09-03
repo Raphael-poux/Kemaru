@@ -205,7 +205,7 @@ Nous verrons dans la prochaine partie que nous avons finalement réussi à amél
 ### TODO : parler du hash et des autres améliorations faites avec N. Stott
 
 # Partie interface
-Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame.
+Ce paragraphe a pour but de détailler la façon dont la grille et les différentes profondeurs de résolution seront représentés, sans considérations sur l'implémentation de cette interface, qui a été codé avec pygame. Nous avons choisi pygame essentiellement car au début du projet nous n'avions pas encore commencé les cours de HTML/Css/javascript.
 
 ## Interface joueur
 Deux modes de jeu distincts ont étés implémentés. Le premier permet a joueur de résoudre la grille par lui-même. Il peut pour s'aider afficher les possibilités dans chaque case et les éliminer manuellement.
